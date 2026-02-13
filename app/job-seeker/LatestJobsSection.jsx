@@ -4,72 +4,100 @@ import React from 'react';
 
 export default function LatestJobsSection({ allJobs, loadingJobs = false }) {
   return (
-    <section className="mt-4 bg-[#f9f6f6] border border-[#f1e9ea] rounded-2xl px-2 py-6 md:p-8 shadow-sm">
-      <div className="mb-6 px-2 md:px-0">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="inline-block w-8 h-2 rounded bg-gradient-to-r from-[#be3144] to-[#f05941] mr-2"></span>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-[#191011]">Latest Jobs</h2>
+    <section className="mb-20">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a1a] mb-2">Latest Job Openings</h2>
+          <p className="text-gray-500">Recommended based on your profile</p>
         </div>
-        <div className="h-1 w-24 bg-[#be3144] rounded"></div>
+        <Link href="/job-seeker/jobs" className="text-[#FF4B4B] font-semibold hover:underline flex items-center gap-1">
+          View all <ArrowRight className="w-4 h-4 ml-1" />
+        </Link>
       </div>
-      
+
       {loadingJobs ? (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="w-8 h-8 animate-spin text-[#be3144]" />
-          <span className="ml-2 text-[#8e575f]">Loading jobs...</span>
+          <Loader2 className="w-8 h-8 animate-spin text-[#FF4B4B]" />
+          <span className="ml-2 text-gray-500">Loading jobs...</span>
         </div>
       ) : allJobs && allJobs.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {allJobs.slice(0, 8).map((job, idx) => {
             // Determine the correct route based on job type
-            const jobRoute = job._type === 'mock' 
+            const jobRoute = job._type === 'mock'
               ? `/job-seeker/job/mock/${job.mockId}`
               : `/job-seeker/job/${job.job_id}`;
-            
+
+            // Generate deterministic random data for UI demo purposes
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const letter = job.jobPosition ? job.jobPosition.charAt(0).toUpperCase() : "J";
+            const bgColors = ["bg-blue-50 text-blue-600", "bg-purple-50 text-purple-600", "bg-orange-50 text-orange-600", "bg-green-50 text-green-600"];
+            const colorClass = bgColors[idx % bgColors.length];
+
+            // Mock tags based on job title words
+            const tags = [];
+            if (job.jobPosition.toLowerCase().includes('react') || job.jobPosition.toLowerCase().includes('frontend')) tags.push('React', 'Frontend');
+            else if (job.jobPosition.toLowerCase().includes('backend') || job.jobPosition.toLowerCase().includes('node')) tags.push('Node.js', 'Backend');
+            else if (job.jobPosition.toLowerCase().includes('manager')) tags.push('Management', 'Agile');
+            else tags.push('Full Time', 'Remote');
+
+            // Mock salary
+            const minSalary = 80 + (idx * 5);
+            const maxSalary = minSalary + 30;
+
             return (
               <div
                 key={job.job_id || job.mockId || idx}
-                className="relative bg-white border border-[#e4d3d5] rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all group flex flex-col h-full overflow-hidden"
+                className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full relative group"
               >
-                {/* Accent bar */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#be3144] to-[#f05941] group-hover:opacity-90 opacity-80 transition-all" />
-                <Link
-                  href={jobRoute}
-                  className="font-extrabold text-lg md:text-xl text-[#be3144] group-hover:underline mb-2 mt-2 block truncate"
-                >
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl ${colorClass}`}>
+                    {letter}
+                  </div>
+                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" /></svg>
+                  </button>
+                </div>
+
+                <h3 className="font-bold text-[#1a1a1a] text-xl mb-2 line-clamp-1" title={job.jobPosition}>
                   {job.jobPosition}
-                </Link>
-                <div className="text-[#8e575f] text-sm mb-3 truncate flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#be3144]" />
-                  {(job.recruiterName || job.createdBy || 'Unknown')}
-                  {job.location && <span className="ml-2 text-[#be3144]">• {job.location}</span>}
+                </h3>
+
+                <div className="text-sm text-gray-500 mb-6 flex items-center font-medium">
+                  <span>{(job.recruiterName || 'Tech Corp Inc.')}</span>
+                  <span className="mx-2 text-gray-300">•</span>
+                  <span>{job.location || 'Remote'}</span>
                 </div>
-                <div className="text-xs text-[#8e575f] mt-auto">
-                  {job.createdAt ? timeAgo(job.createdAt) : ''}
+
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {tags.map((tag, i) => (
+                    <span key={i} className="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-                {/* Simple View Details link */}
-                <Link
-                  href={jobRoute}
-                  className="mt-4 text-[#a94442] hover:underline text-base font-normal flex items-center gap-1 w-fit"
-                >
-                  View Details <ArrowRight className="w-4 h-4" />
-                </Link>
+
+                <div className="mt-auto flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-400 font-medium mb-1">Salary</span>
+                    <span className="text-base font-bold text-[#1a1a1a]">${minSalary}k - ${maxSalary}k</span>
+                  </div>
+                  <Link
+                    href={jobRoute}
+                    className="bg-[#1a1a1a] text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-black transition-all hover:shadow-lg active:scale-95"
+                  >
+                    Apply Now
+                  </Link>
+                </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="text-center text-[#8e575f] py-12 text-lg">
+        <div className="text-center text-gray-500 py-12 text-lg bg-gray-50 rounded-2xl border border-gray-100">
           No jobs available at the moment.
         </div>
       )}
-      
-      <div className="flex justify-end mt-8">
-        <Link href="/job-seeker/jobs" className="text-[#be3144] hover:underline font-semibold flex items-center gap-1 text-lg">
-          See other jobs
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-      </div>
     </section>
   );
 }

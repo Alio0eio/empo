@@ -21,7 +21,107 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ### Backend Tasks
 
-#### Task 1.1: Clean Up Test/Debug Routes
+#### Task 1.1: Remove Call Interview (Vapi) Integration
+**Priority:** 🔴 Critical  
+**Estimated Time:** 4-6 hours
+
+**Actions:**
+1. **Remove Vapi Dependencies:**
+   ```bash
+   npm uninstall @vapi-ai/web
+   ```
+
+2. **Remove Call Interview Components:**
+   - Delete `app/job-seeker/Call-Interview/` directory
+   - Delete `app/job-seeker/job/call/` directory
+   - Delete `app/dashboard/_components/CallInterviewCard.jsx`
+   - Delete `app/api/GenerateQuestionForPhone/route.js`
+   - Delete `app/api/GenerateFeedbackForPhone/route.jsx`
+
+3. **Update Database Queries:**
+   - Remove call interview references from job recommendations
+   - Update queries to exclude call interviews
+   - Mark `callInterview` table as deprecated in schema
+
+4. **Update UI:**
+   - Remove call interview options from dashboard
+   - Update job seeker page to show only video interviews
+   - Remove call interview creation flow
+   - Update sidebar navigation
+
+**Files to Remove:**
+- `app/job-seeker/Call-Interview/**/*`
+- `app/job-seeker/job/call/**/*`
+- `app/dashboard/_components/CallInterviewCard.jsx`
+- `app/api/GenerateQuestionForPhone/route.js`
+- `app/api/GenerateFeedbackForPhone/route.jsx`
+
+**Files to Modify:**
+- `app/job-seeker/page.jsx` - Remove call interview references
+- `app/dashboard/page.jsx` - Remove call interview cards
+- `app/api/job-recommendations/route.js` - Remove call interview logic
+- `utils/schema.js` - Mark callInterview as deprecated
+- `utils/Constants.jsx` - Remove call interview options
+
+**Acceptance Criteria:**
+- ✅ Vapi package removed
+- ✅ All call interview components removed
+- ✅ No call interview references in code
+- ✅ Database table marked as deprecated
+
+---
+
+#### Task 1.2: Remove Chat System
+**Priority:** 🔴 Critical  
+**Estimated Time:** 3-4 hours
+
+**Actions:**
+1. **Remove Chat API Routes:**
+   - Delete `app/api/chat/conversations/route.js`
+   - Delete `app/api/chat/messages/route.js`
+   - Delete `app/api/chat/direct-message/route.js`
+   - Delete `app/api/test-chat-tables/route.js` (already in test cleanup)
+
+2. **Remove Chat Pages:**
+   - Delete `app/dashboard/chat/page.jsx`
+   - Delete `app/job-seeker/chat/page.jsx`
+
+3. **Remove Chat Components:**
+   - Delete any standalone chat button components
+   - Remove chat-related imports
+
+4. **Update Navigation:**
+   - Remove chat from sidebar (`utils/Constants.jsx`)
+   - Remove chat menu items from dashboard
+   - Update AppSidebar component
+
+5. **Update Database Schema:**
+   - Mark `ChatConversations` and `ChatMessages` tables as deprecated
+   - Remove chat-related queries from active code
+   - Keep tables for historical data integrity
+
+**Files to Remove:**
+- `app/api/chat/**/*` (all chat API routes)
+- `app/dashboard/chat/page.jsx`
+- `app/job-seeker/chat/page.jsx`
+- `app/dashboard/video-interview/[mockId]/details/_components/ChatButton.jsx` (if exists)
+
+**Files to Modify:**
+- `utils/Constants.jsx` - Remove chat from sidebar options
+- `app/dashboard/_components/AppSidebar.jsx` - Remove chat menu item
+- `utils/schema.js` - Mark chat tables as deprecated
+- `drizzle/schema.ts` - Add deprecation comments
+
+**Acceptance Criteria:**
+- ✅ All chat routes removed
+- ✅ Chat pages removed
+- ✅ Navigation updated
+- ✅ No chat references in code
+- ✅ Database tables marked as deprecated
+
+---
+
+#### Task 1.3: Clean Up Test/Debug Routes
 **Priority:** 🔴 Critical  
 **Estimated Time:** 4 hours
 
@@ -117,7 +217,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ---
 
-#### Task 1.3: Add Input Validation Middleware
+#### Task 1.5: Add Input Validation Middleware
 **Priority:** 🔴 Critical  
 **Estimated Time:** 8 hours
 
@@ -171,7 +271,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ---
 
-#### Task 1.4: Implement Rate Limiting
+#### Task 1.6: Implement Rate Limiting
 **Priority:** 🔴 Critical  
 **Estimated Time:** 4 hours
 
@@ -219,7 +319,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ---
 
-#### Task 1.5: Database Index Optimization
+#### Task 1.7: Database Index Optimization
 **Priority:** 🟡 High  
 **Estimated Time:** 3 hours
 
@@ -233,8 +333,9 @@ This document provides a detailed, step-by-step implementation plan to transform
    CREATE INDEX idx_useranswer_mockid ON "userAnswer"("mockId");
    CREATE INDEX idx_useranswer_sessionid ON "userAnswer"("sessionId");
    CREATE INDEX idx_jobrecommendation_userid ON "JobRecommendation"("userId");
-   CREATE INDEX idx_chatmessages_conversationid ON "ChatMessages"("conversationId");
-   CREATE INDEX idx_chatmessages_createdat ON "ChatMessages"("createdAt");
+   -- Note: Chat indexes removed as chat system is being deprecated
+   -- CREATE INDEX idx_chatmessages_conversationid ON "ChatMessages"("conversationId");
+   -- CREATE INDEX idx_chatmessages_createdat ON "ChatMessages"("createdAt");
    ```
 
 3. Run migration
@@ -305,7 +406,7 @@ This document provides a detailed, step-by-step implementation plan to transform
    - CV upload/analysis
    - Job recommendations
    - Interview creation
-   - Chat messages
+   - Interview data
    - Profile updates
 
 **Files to Create:**
@@ -342,13 +443,13 @@ This document provides a detailed, step-by-step implementation plan to transform
    }
    ```
 
-3. Apply to user inputs (chat, profile, etc.)
+3. Apply to user inputs (profile, job posting, etc.)
 
 **Files to Create:**
 - `utils/sanitize.js`
 
 **Files to Modify:**
-- Chat components
+- Profile components
 - Profile forms
 - Job posting forms
 
@@ -500,7 +601,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 2. Split routes:
    - Dashboard pages
    - Interview components
-   - Chat components
+   - Profile components
    - Job matching components
 
 3. Lazy load ML models:
@@ -555,7 +656,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 1. Add React.memo to expensive components:
    - Interview list items
    - Job recommendation cards
-   - Chat message components
+   - Interview components
 
 2. Use useMemo for expensive calculations:
    - Job matching scores
@@ -570,7 +671,7 @@ This document provides a detailed, step-by-step implementation plan to transform
 **Files to Modify:**
 - `app/dashboard/_components/InterviewList.jsx`
 - `app/job-seeker/_components/JobRecommendations.jsx`
-- `app/dashboard/chat/**/*.jsx`
+- `app/dashboard/interview/**/*.jsx`
 
 **Acceptance Criteria:**
 - ✅ Reduced re-renders
@@ -888,66 +989,172 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ### Frontend Tasks
 
-#### Task 4.4: Complete Chat Real-time Updates
-**Priority:** 🟡 High  
-**Estimated Time:** 8 hours
-
-**Actions:**
-1. Implement polling or WebSocket:
-   ```javascript
-   // Option 1: Polling
-   useEffect(() => {
-     const interval = setInterval(() => {
-       fetchMessages();
-     }, 2000);
-     return () => clearInterval(interval);
-   }, []);
-   
-   // Option 2: WebSocket (better)
-   const ws = new WebSocket(WS_URL);
-   ws.onmessage = (event) => {
-     const message = JSON.parse(event.data);
-     setMessages(prev => [...prev, message]);
-   };
-   ```
-
-2. Add message notifications
-3. Add typing indicators (optional)
-
-**Files to Modify:**
-- `app/dashboard/chat/page.jsx`
-- `app/job-seeker/chat/page.jsx`
-
-**Files to Create:**
-- `utils/websocket.js` (if using WebSocket)
-- `hooks/useChat.jsx`
-
-**Acceptance Criteria:**
-- ✅ Real-time message updates
-- ✅ Notifications work
-- ✅ Good performance
-
----
-
-#### Task 4.5: Improve Interview UI/UX
+#### Task 4.4: Enhance Interview Page UI/UX
 **Priority:** 🟡 High  
 **Estimated Time:** 6 hours
 
 **Actions:**
-1. Add progress indicators
-2. Improve video recording UI
-3. Add retry functionality
-4. Improve feedback display
-5. Add keyboard shortcuts
+1. **Add Progress Indicators:**
+   ```jsx
+   // Add to interview page
+   <div className="mb-6">
+     <div className="flex items-center justify-between mb-2">
+       <span className="text-sm font-medium text-gray-600">
+         Question {currentQuestionIndex + 1} of {totalQuestions}
+       </span>
+       <span className="text-sm text-gray-500">
+         {timeRemaining}s remaining
+       </span>
+     </div>
+     <Progress value={(currentQuestionIndex + 1) / totalQuestions * 100} />
+   </div>
+   ```
+
+2. **Improve Recording UI:**
+   - Larger video preview
+   - Better recording controls (start/stop/pause)
+   - Visual feedback during recording
+   - Recording duration display
+   - Countdown before recording starts
+
+3. **Better Question Display:**
+   - Larger, clearer question text
+   - Improved typography
+   - Better spacing and layout
+
+4. **Answer Review & Retry:**
+   - Show recorded answer before submission
+   - Playback option
+   - Clear retry button
+   - Answer status indicators
 
 **Files to Modify:**
-- `app/dashboard/video-interview/**/*.jsx`
-- `app/interview/**/*.jsx`
+- `app/interview/[interviewId]/page.jsx`
+- `app/interview/[interviewId]/start/page.jsx`
+- `app/interview/[interviewId]/start/_components/RecordAnswerSection.jsx`
+
+**Files to Create:**
+- `app/interview/[interviewId]/_components/InterviewProgress.jsx`
+- `app/interview/[interviewId]/_components/RecordingControls.jsx`
 
 **Acceptance Criteria:**
-- ✅ Better user experience
-- ✅ Clear progress indication
-- ✅ Intuitive controls
+- ✅ Progress indicators visible
+- ✅ Better recording experience
+- ✅ Clear question display
+- ✅ Retry functionality works
+
+---
+
+#### Task 4.5: Improve Candidate Dashboard (Job Seeker Page)
+**Priority:** 🟡 High  
+**Estimated Time:** 5 hours
+
+**Actions:**
+1. **Enhanced Job Cards:**
+   ```jsx
+   // Better job card design
+   <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-100 hover:border-[#be3144]/20 p-6">
+     <div className="flex items-start justify-between mb-4">
+       <div className="flex items-center gap-3">
+         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#be3144] to-[#f05941] flex items-center justify-center text-white font-bold">
+           {job.company?.charAt(0) || 'J'}
+         </div>
+         <div>
+           <h3 className="font-bold text-lg text-gray-900 group-hover:text-[#be3144] transition-colors">
+             {job.jobTitle}
+           </h3>
+           <p className="text-sm text-gray-600">{job.company}</p>
+         </div>
+       </div>
+       {job.matchScore && (
+         <div className="px-3 py-1 bg-green-50 rounded-full">
+           <span className="text-sm font-semibold text-green-700">{job.matchScore}% Match</span>
+         </div>
+       )}
+     </div>
+     {/* Location, salary, description */}
+     <Button className="w-full mt-4">View Details</Button>
+   </div>
+   ```
+
+2. **Better Filtering & Search:**
+   - Improved search bar with autocomplete
+   - Filter chips (location, salary, type)
+   - Sort options (relevance, date, salary)
+   - Clear filters button
+
+3. **Dashboard Stats:**
+   - Profile completion indicator
+   - Quick stats (jobs viewed, interviews taken)
+   - CV upload status
+
+**Files to Modify:**
+- `app/job-seeker/page.jsx`
+- `app/job-seeker/_components/JobRecommendations.jsx`
+- `app/job-seeker/LatestJobsSection.jsx`
+
+**Files to Create:**
+- `app/job-seeker/_components/DashboardStats.jsx`
+- `app/job-seeker/_components/JobCard.jsx`
+
+**Acceptance Criteria:**
+- ✅ Better job card design
+- ✅ Improved search/filtering
+- ✅ Dashboard stats visible
+
+---
+
+#### Task 4.6: Enhance Job Details Page
+**Priority:** 🟡 High  
+**Estimated Time:** 6 hours
+
+**Actions:**
+1. **Enhanced Layout:**
+   ```jsx
+   // Better job details page
+   <div className="max-w-5xl mx-auto">
+     <div className="bg-white rounded-xl shadow-md p-8 mb-6">
+       {/* Header with company logo, job title, apply button */}
+       {/* Skills tags */}
+     </div>
+     
+     <Tabs defaultValue="overview">
+       <TabsList>
+         <TabsTrigger value="overview">Overview</TabsTrigger>
+         <TabsTrigger value="requirements">Requirements</TabsTrigger>
+       </TabsList>
+       <TabsContent value="overview">
+         {/* Job description */}
+       </TabsContent>
+     </Tabs>
+   </div>
+   ```
+
+2. **Visual Enhancements:**
+   - Company logo/header
+   - Better salary display
+   - Location map preview (optional)
+   - Skills tags with icons
+   - Job type badges
+
+3. **Interactive Elements:**
+   - Share job button
+   - Save job button
+   - Print job button
+   - Sticky apply button
+
+**Files to Create:**
+- `app/job-seeker/job/[jobId]/page.jsx` (if doesn't exist)
+- `app/job-seeker/job/[jobId]/_components/JobHeader.jsx`
+- `app/job-seeker/job/[jobId]/_components/JobTabs.jsx`
+
+**Files to Modify:**
+- `app/api/job-details/[jobId]/route.js` (enhance response)
+
+**Acceptance Criteria:**
+- ✅ Better job details layout
+- ✅ Tabbed content
+- ✅ Interactive elements work
 
 ---
 
@@ -1285,10 +1492,28 @@ This document provides a detailed, step-by-step implementation plan to transform
 **Total Estimated Time:** 180-200 hours (4-6 weeks with 1 developer)
 
 **Phase Breakdown:**
-- **Phase 1 (Week 1):** Critical cleanup - 40 hours
+- **Phase 1 (Week 1):** Critical cleanup & feature removals - 47-50 hours
+  - Remove call interviews (4-6 hours)
+  - Remove chat system (3-4 hours)
+  - Test route cleanup (4 hours)
+  - Error handling (6 hours)
+  - Input validation (8 hours)
+  - Rate limiting (4 hours)
+  - Database indexes (3 hours)
+  - Error boundaries (4 hours)
+  - Loading states (6 hours)
+  - Input sanitization (3 hours)
 - **Phase 2 (Week 2):** Performance optimization - 35 hours
 - **Phase 3 (Week 3):** Security hardening - 25 hours
-- **Phase 4 (Week 4):** Feature completion - 35 hours
+- **Phase 4 (Week 4):** Feature completion & frontend improvements - 47 hours
+  - Job matcher fix (8 hours)
+  - Job editing (4 hours)
+  - Interview analytics (6 hours)
+  - Interview page improvements (6 hours)
+  - Candidate dashboard improvements (5 hours)
+  - Job details page improvements (6 hours)
+  - Search & filtering (6 hours)
+  - UI polish (6 hours)
 - **Phase 5 (Week 5):** Testing & documentation - 30 hours
 - **Phase 6 (Week 6):** Monitoring & deployment - 20 hours
 
@@ -1304,12 +1529,16 @@ This document provides a detailed, step-by-step implementation plan to transform
 7. Error tracking
 
 **🟡 High (Should Have):**
-1. Performance optimization
-2. Database optimization
-3. Code splitting
-4. Caching
-5. Analytics
-6. API documentation
+1. Frontend UI/UX improvements
+   - Interview page enhancements
+   - Candidate dashboard improvements
+   - Job details page improvements
+2. Performance optimization
+3. Database optimization
+4. Code splitting
+5. Caching
+6. Analytics
+7. API documentation
 
 **🟢 Medium (Nice to Have):**
 1. Testing infrastructure
@@ -1319,19 +1548,22 @@ This document provides a detailed, step-by-step implementation plan to transform
 
 ### Quick Wins (Can Do First)
 
-1. **Remove test routes** (4 hours) - Immediate cleanup
-2. **Add error boundaries** (4 hours) - Better error handling
-3. **Implement loading states** (6 hours) - Better UX
-4. **Add input validation** (8 hours) - Security improvement
-5. **Optimize images** (4 hours) - Performance boost
+1. **Remove call interview references** (4 hours) - Cleanup
+2. **Remove chat system** (3 hours) - Cleanup
+3. **Remove test routes** (4 hours) - Immediate cleanup
+4. **Add error boundaries** (4 hours) - Better error handling
+5. **Implement loading states** (6 hours) - Better UX
+6. **Add input validation** (8 hours) - Security improvement
+7. **Optimize images** (4 hours) - Performance boost
 
 ### Risk Mitigation
 
 **High Risk Areas:**
-1. **Job Matcher Model:** May need alternative solution
-2. **File Storage Migration:** Need to migrate existing files
-3. **Database Performance:** May need query optimization
-4. **Real-time Chat:** WebSocket implementation complexity
+1. **Feature Removals:** Need to ensure no broken references after removing call interviews and chat
+2. **Job Matcher Model:** May need alternative solution
+3. **File Storage Migration:** Need to migrate existing files
+4. **Database Performance:** May need query optimization
+5. **Frontend Polish:** Multiple UI/UX improvements needed
 
 **Mitigation Strategies:**
 - Have fallback solutions ready
@@ -1374,7 +1606,8 @@ I-Hire-AI-Interviewer/
 │   ├── api/
 │   │   ├── admin/              # Protected admin routes
 │   │   │   └── debug/
-│   │   ├── chat/
+│   │   ├── admin/              # Protected admin routes
+│   │   │   └── debug/
 │   │   ├── cv-analyze/
 │   │   ├── interviews/
 │   │   ├── jobs/

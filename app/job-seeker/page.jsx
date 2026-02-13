@@ -6,8 +6,8 @@ import { MockInterview, callInterview } from '@/utils/schema';
 import { desc, eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { 
-  WebcamIcon, Briefcase, Star, Lightbulb, Search, 
+import {
+  WebcamIcon, Briefcase, Star, Lightbulb, Search,
   ArrowRight, Building2, Code, Paintbrush, Database,
   ChevronRight, Loader2, BarChart2, Clock, User,
   Pencil, Book, PhoneCall, HelpCircle, Info, Handshake, Mail, Settings, LogOut, MessageCircle
@@ -95,7 +95,7 @@ export default function JobSeekerPage() {
         .from(MockInterview)
         .where(eq(MockInterview.createdBy, user?.primaryEmailAddress?.emailAddress))
         .orderBy(desc(MockInterview.createdAt));
-      
+
       setInterviewList(result);
     } catch (error) {
       console.error("Failed to fetch interviews:", error);
@@ -180,23 +180,23 @@ export default function JobSeekerPage() {
             <Link href="/" className="flex items-center gap-4 group">
               {/* Logo with hover effect */}
               <div className={`transition-all duration-300 ${scrolled ? 'w-12 h-12' : 'w-14 h-14'}`}>
-                <Image 
-                  src={'/logo.png'} 
-                  width={scrolled ? 48 : 56} 
-                  height={scrolled ? 48 : 56} 
+                <Image
+                  src={'/logo.png'}
+                  width={scrolled ? 48 : 56}
+                  height={scrolled ? 48 : 56}
                   alt='logo'
                   className="group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               {/* Gradient company name */}
-              <span className={`text-xl font-bold bg-gradient-to-r from-[#be3144] to-[#f05941] bg-clip-text text-transparent transition-all duration-300 ${scrolled ? 'text-2xl' : 'text-3xl'}`}>I-Hire</span>
+              <span className={`text-xl font-bold text-[#FF4B4B] transition-all duration-300 ${scrolled ? 'text-2xl' : 'text-3xl'}`}>I-Hire</span>
             </Link>
             {/* Job seeker actions */}
             <div className="flex items-center gap-4">
               {/* Desktop Upload CV button */}
-              <Button 
-                variant="outline" 
-                className="hidden md:flex items-center gap-2 border-[#be3144] text-[#be3144] hover:bg-[#f1e9ea] transition-colors"
+              <Button
+                variant="outline"
+                className="hidden md:flex items-center gap-2 border-[#FF4B4B] text-[#FF4B4B] hover:bg-[#fff0f0] transition-colors"
                 onClick={() => router.push('/job-seeker/Upload-CV')}
               >
                 <span>Upload CV</span>
@@ -205,19 +205,19 @@ export default function JobSeekerPage() {
               {isLoaded && user && (
                 <div className="relative">
                   <div
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f1e9ea] to-[#e4d3d5] flex items-center justify-center overflow-hidden border-2 border-[#f1e9ea] hover:border-[#be3144] transition-colors shadow-sm cursor-pointer"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-[#fff0f0] to-[#e4d3d5] flex items-center justify-center overflow-hidden border-2 border-[#fff0f0] hover:border-[#FF4B4B] transition-colors shadow-sm cursor-pointer"
                     onClick={() => setMenuOpen((open) => !open)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <UserAvatar 
-                      profilePhoto={userProfile?.profilePhoto} 
-                      userImageUrl={user.imageUrl} 
-                      name={userProfile?.name || user.fullName} 
-                      size={56} 
+                    <UserAvatar
+                      profilePhoto={userProfile?.profilePhoto}
+                      userImageUrl={user.imageUrl}
+                      name={userProfile?.name || user.fullName}
+                      size={56}
                     />
                   </div>
                   {completedInterviews > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#be3144] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow">
+                    <span className="absolute -top-2 -right-2 bg-[#FF4B4B] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow">
                       {completedInterviews}
                     </span>
                   )}
@@ -228,11 +228,11 @@ export default function JobSeekerPage() {
                       style={{ minWidth: 280 }}
                     >
                       <div className="p-5 border-b border-[#f1e9ea] flex items-center gap-4 bg-[#f9f6f6]">
-                        <UserAvatar 
-                          profilePhoto={userProfile?.profilePhoto} 
-                          userImageUrl={user.imageUrl} 
-                          name={userProfile?.name || user.fullName} 
-                          size={56} 
+                        <UserAvatar
+                          profilePhoto={userProfile?.profilePhoto}
+                          userImageUrl={user.imageUrl}
+                          name={userProfile?.name || user.fullName}
+                          size={56}
                         />
                         <div className="flex flex-col min-w-0">
                           <div className="font-bold text-[#191011] truncate">{user.fullName || 'User'}</div>
@@ -244,49 +244,49 @@ export default function JobSeekerPage() {
                               setMenuOpen(false);
                               router.push('/job-seeker/profile');
                             }}
-                            className="text-xs text-[#be3144] hover:underline mt-1"
+                            className="text-xs text-[#FF4B4B] hover:underline mt-1"
                           >
                             View Profile
                           </a>
                         </div>
                       </div>
                       <div className="flex flex-col divide-y divide-[#f1e9ea]">
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Pencil className="w-5 h-5 text-[#191011]" /> Edit Profile
                         </a>
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Book className="w-5 h-5 text-[#191011]" /> Career Readings
                         </a>
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <PhoneCall className="w-5 h-5 text-[#191011]" /> Help Center
                         </a>
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Info className="w-5 h-5 text-[#191011]" /> About Us
                         </a>
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Handshake className="w-5 h-5 text-[#191011]" /> Become A Partner
                         </a>
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Mail className="w-5 h-5 text-[#191011]" /> Contact Us
                         </a>
-                        <a 
-                          href="#" 
+                        <a
+                          href="#"
                           onClick={e => {
                             e.preventDefault();
                             setMenuOpen(false);
                             router.push('/job-seeker/chat');
                           }}
-                          className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium"
+                          className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium"
                         >
                           <MessageCircle className="w-5 h-5 text-[#191011]" /> Chat
                         </a>
                       </div>
                       <div className="border-t border-[#f1e9ea] flex flex-col">
-                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#f1e9ea] transition-colors text-[#191011] text-base font-medium">
+                        <a href="#" className="flex items-center gap-4 px-6 py-4 hover:bg-[#fff0f0] transition-colors text-[#191011] text-base font-medium">
                           <Settings className="w-5 h-5 text-[#191011]" /> Account Settings
                         </a>
-                        <a href="#" onClick={e => { e.preventDefault(); signOut(); }} className="flex items-center gap-4 px-6 py-4 hover:bg-[#f9eaea] transition-colors text-[#be3144] text-base font-semibold">
-                          <LogOut className="w-5 h-5 text-[#be3144]" /> Logout
+                        <a href="#" onClick={e => { e.preventDefault(); signOut(); }} className="flex items-center gap-4 px-6 py-4 hover:bg-[#f9eaea] transition-colors text-[#FF4B4B] text-base font-semibold">
+                          <LogOut className="w-5 h-5 text-[#FF4B4B]" /> Logout
                         </a>
                       </div>
                     </div>
@@ -301,7 +301,7 @@ export default function JobSeekerPage() {
         {/* Mobile Upload CV button */}
         <div className="block md:hidden mb-8 px-2">
           <Button
-            className="w-full py-4 text-lg font-bold rounded-2xl shadow-lg bg-gradient-to-r from-[#be3144] to-[#f05941] text-white flex items-center justify-center gap-3 transition-all duration-200 active:scale-95"
+            className="w-full py-4 text-lg font-bold rounded-2xl shadow-lg bg-[#FF4B4B] hover:bg-[#ff3333] text-white flex items-center justify-center gap-3 transition-all duration-200 active:scale-95"
             onClick={() => router.push('/job-seeker/Upload-CV')}
             style={{ minHeight: 56 }}
           >
@@ -309,129 +309,120 @@ export default function JobSeekerPage() {
             <ChevronRight className="w-6 h-6" />
           </Button>
         </div>
-        {/* Enhanced Hero Section */}
-        <section className="relative rounded-2xl overflow-hidden mb-12 shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#be3144]/90 to-[#f05941]/80 z-10"></div>
-          <img 
-            src="https://cdn.usegalileo.ai/sdxl10/0c18fe0e-67c2-4596-af2f-86cd7bf4ac88.png" 
-            alt="Career growth" 
-            className="w-full h-96 object-cover object-center"
-            loading="eager"
-          />
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                Land Your <span className="text-[#ffd700]">Dream Job</span> with AI Coaching
-              </h1>
-              <p className="text-lg text-white/90 mb-8">
-                Practice interviews, get personalized feedback, and stand out from the competition with our AI-powered platform
-              </p>
-              
-              <form className="w-full" onSubmit={e => { e.preventDefault(); if (searchQuery.trim()) { router.push(`/job-seeker/jobs?search=${encodeURIComponent(searchQuery)}`); } else { router.push('/job-seeker/jobs'); } }}>
-                <div className="relative flex shadow-lg rounded-lg overflow-hidden">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8e575f]" />
-                  <input
-                    type="text"
-                    placeholder="Search for jobs (e.g. 'Frontend Developer')"
-                    className="w-full pl-12 pr-4 py-4 focus:outline-none text-[#191011] min-h-[56px] text-base"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                  <Button 
-                    type="submit"
-                    className="rounded-none px-8 min-h-[56px] h-full text-base font-semibold bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#ff7b54] transition-all flex items-center justify-center"
-                  >
-                    Find Jobs
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                </div>
-              </form>
+
+        {/* New Hero Section */}
+        <section className="relative py-16 md:py-24 flex flex-col items-center text-center px-4">
+          <div className="bg-[#FFF0F0] text-[#FF4B4B] px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase mb-6 inline-flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF4B4B]"></span>
+            AI-Powered Search
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-extrabold text-[#1a1a1a] mb-6 leading-tight max-w-4xl tracking-tight">
+            Find the job that <br className="hidden md:block" />
+            <span className="text-[#FF4B4B]">fits your life.</span>
+          </h1>
+
+          <p className="text-lg text-gray-500 max-w-2xl mb-10 leading-relaxed">
+            Connect with top employers and let our AI coach guide you through interview prep to landing your offer.
+          </p>
+
+          {/* Search Bar */}
+          <div className="w-full max-w-4xl bg-white p-2 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 flex flex-col md:flex-row items-center gap-2 mb-8">
+            <div className="flex-1 flex items-center px-4 w-full h-14 md:h-auto border-b md:border-b-0 md:border-r border-gray-100">
+              <Search className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Job title, keywords, or company"
+                className="w-full h-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex-1 flex items-center px-4 w-full h-14 md:h-auto">
+              <div className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0 flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Location"
+                className="w-full h-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
+            <Button
+              onClick={() => {
+                if (searchQuery.trim()) {
+                  router.push(`/job-seeker/jobs?search=${encodeURIComponent(searchQuery)}`);
+                } else {
+                  router.push('/job-seeker/jobs');
+                }
+              }}
+              className="w-full md:w-auto px-8 h-12 rounded-xl bg-[#DC3535] hover:bg-[#c02e2e] text-white font-semibold text-base shadow-lg shadow-red-200 transition-all hover:shadow-red-300"
+            >
+              Search
+            </Button>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 text-sm font-medium text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#10b981] flex items-center justify-center text-white">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              Verified Companies
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#3b82f6] flex items-center justify-center text-white">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              AI Resume Review
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#a855f7] flex items-center justify-center text-white">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              Salary Insights
             </div>
           </div>
         </section>
 
-        {/* User Stats Section */}
-        {completedInterviews > 0 && (
-          <section className="mb-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e4d3d5]">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#f1e9ea] rounded-lg">
-                  <User className="w-5 h-5 text-[#be3144]" />
-                </div>
-                <div>
-                  <p className="text-sm text-[#8e575f]">Completed</p>
-                  <p className="text-xl font-bold text-[#191011]">{completedInterviews}</p>
-                </div>
-              </div>
+        {/* Explore Categories */}
+        <section className="mb-20">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a1a] mb-2">Explore Categories</h2>
+              <p className="text-gray-500">Find opportunities across different industries</p>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e4d3d5]">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#f1e9ea] rounded-lg">
-                  <Star className="w-5 h-5 text-[#be3144] fill-yellow-400/80" />
-                </div>
-                <div>
-                  <p className="text-sm text-[#8e575f]">Avg. Rating</p>
-                  <p className="text-xl font-bold text-[#191011]">{avgRating.toFixed(1)}/5</p>
-                </div>
-              </div>
+            <div className="flex gap-2">
+              <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <button className="w-10 h-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-black transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e4d3d5]">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#f1e9ea] rounded-lg">
-                  <Clock className="w-5 h-5 text-[#be3144]" />
-                </div>
-                <div>
-                  <p className="text-sm text-[#8e575f]">Last Practice</p>
-                  <p className="text-xl font-bold text-[#191011]">
-                    {lastInterviewDate ? new Date(lastInterviewDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Never'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e4d3d5]">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#f1e9ea] rounded-lg">
-                  <BarChart2 className="w-5 h-5 text-[#be3144]" />
-                </div>
-                <div>
-                  <p className="text-sm text-[#8e575f]">Progress</p>
-                  <p className="text-xl font-bold text-[#191011]">
-                    {Math.min(completedInterviews * 10, 100)}%
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Enhanced Job Categories */}
-        <section className="mb-10 bg-[#f9f6f6] border border-[#f1e9ea] rounded-2xl px-2 py-6 md:p-8 shadow-sm">
-          <div className="mb-6 px-2 md:px-0">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="inline-block w-8 h-2 rounded bg-gradient-to-r from-[#be3144] to-[#f05941] mr-2"></span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#191011]">Explore Job Categories</h2>
-            </div>
-            <div className="h-1 w-24 bg-[#be3144] rounded"></div>
-            <p className="text-[#8e575f] text-sm md:text-base mt-2">Click to search for jobs in each category</p>
           </div>
-          <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 scrollbar-hide snap-x snap-mandatory px-1 md:px-0">
-            {jobCategories.map((category, index) => (
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {jobCategories.slice(0, 5).map((category, index) => (
               <div
                 key={index}
-                className="min-w-[80vw] max-w-[90vw] md:min-w-0 md:max-w-none bg-white p-5 md:p-6 rounded-2xl border border-[#e4d3d5] hover:border-[#be3144] hover:shadow-lg transition-all cursor-pointer group flex flex-col h-full snap-center relative"
+                className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all cursor-pointer group"
                 onClick={() => handleCategorySelect(category.title)}
               >
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="w-14 h-14 md:w-12 md:h-12 bg-[#f1e9ea] rounded-full flex items-center justify-center group-hover:bg-[#be3144]/10 transition-colors text-2xl md:text-xl">
-                    {category.icon}
-                  </div>
-                  <h3 className="font-bold text-[#191011] text-lg md:text-xl group-hover:text-[#be3144] transition-colors flex-1 min-w-0 break-words line-clamp-2">
-                    {category.title}
-                  </h3>
-                  <ChevronRight className="w-6 h-6 text-[#be3144] opacity-70 group-hover:translate-x-1 transition-transform" />
+                <div className={`w-12 h-12 rounded-xl mb-4 flex items-center justify-center text-2xl
+                    ${index === 0 ? 'bg-blue-50 text-blue-600' : ''}
+                    ${index === 1 ? 'bg-purple-50 text-purple-600' : ''}
+                    ${index === 2 ? 'bg-green-50 text-green-600' : ''}
+                    ${index === 3 ? 'bg-orange-50 text-orange-600' : ''}
+                    ${index >= 4 ? 'bg-red-50 text-red-600' : ''}
+                `}>
+                  {category.icon}
                 </div>
-                <p className="text-sm md:text-base text-[#8e575f] mb-1 flex-grow">
-                  {category.description}
+                <h3 className="font-bold text-[#1a1a1a] text-lg mb-1 group-hover:text-[#FF4B4B] transition-colors">
+                  {category.title.split('/')[0]} {/* Simplify title for clean look */}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {Math.floor(Math.random() * 900) + 100}+ Jobs
                 </p>
               </div>
             ))}
@@ -489,7 +480,7 @@ export default function JobSeekerPage() {
                   </svg>
                 </Link>
                 <Link href="#" className="w-9 h-9 bg-[#be3144] rounded-full flex items-center justify-center hover:bg-[#f05941] transition-colors" aria-label="LinkedIn">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
                 </Link>
               </div>
               <p className="text-[#f1e9ea] text-xs text-center">© {new Date().getFullYear()} <span className="font-bold text-[#be3144]">I-Hire</span>. All rights reserved.</p>

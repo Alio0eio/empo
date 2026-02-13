@@ -136,7 +136,7 @@ export default function JobRecommendations() {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
         <p className="text-red-700">{error}</p>
-        <Button 
+        <Button
           onClick={generateEnhancedRecommendations}
           variant="outline"
           size="sm"
@@ -157,7 +157,7 @@ export default function JobRecommendations() {
           <TrendingUp className="w-12 h-12 text-[#8e575f] mx-auto mb-4" />
           <h3 className="text-lg font-medium text-[#be3144] mb-2">No valid jobs with _type found</h3>
           <p className="text-[#8e575f] mb-4">Raw jobs from API (check console for details):</p>
-          <pre className="text-xs text-left bg-[#f1e9ea] p-2 rounded max-h-60 overflow-auto" style={{whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{JSON.stringify(rawRecommendations, null, 2)}</pre>
+          <pre className="text-xs text-left bg-[#f1e9ea] p-2 rounded max-h-60 overflow-auto" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(rawRecommendations, null, 2)}</pre>
         </div>
       );
     }
@@ -168,7 +168,7 @@ export default function JobRecommendations() {
         <p className="text-[#8e575f] mb-4">
           Upload your CV to get personalized job recommendations powered by our fine-tuned AI model.
         </p>
-        <Button 
+        <Button
           onClick={() => window.location.href = '/job-seeker/Upload-CV'}
           className="bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#ff7b54]"
         >
@@ -192,7 +192,7 @@ export default function JobRecommendations() {
         <p className="text-[#8e575f] mb-4">
           Please upload your CV to get personalized job recommendations powered by our AI model.
         </p>
-        <Button 
+        <Button
           onClick={() => window.location.href = '/job-seeker/Upload-CV'}
           className="bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#ff7b54]"
         >
@@ -224,7 +224,7 @@ export default function JobRecommendations() {
             </div>
           )}
         </div>
-        <Button 
+        <Button
           onClick={generateEnhancedRecommendations}
           variant="outline"
           size="sm"
@@ -234,8 +234,8 @@ export default function JobRecommendations() {
           Refresh
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredRecommendations.map((job) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredRecommendations.map((job, idx) => {
           const key = job._type === 'call' ? job.job_id : job.mockId;
           const handleViewDetails = () => {
             if (job._type === 'call') {
@@ -244,63 +244,77 @@ export default function JobRecommendations() {
               router.push(`/job-seeker/job/mock/${job.mockId}`);
             }
           };
+
+          // Generate deterministic random data for UI demo purposes (consistent with LatestJobsSection)
+          const letter = job.jobPosition ? job.jobPosition.charAt(0).toUpperCase() : "J";
+          const bgColors = ["bg-blue-50 text-blue-600", "bg-purple-50 text-purple-600", "bg-orange-50 text-orange-600", "bg-green-50 text-green-600"];
+          const colorClass = bgColors[idx % bgColors.length];
+
+          // Mock tags based on job title words
+          const tags = [];
+
+          // Add Match Score as the first tag if available
+          if (typeof job.matchScore === 'number') {
+            tags.push(`${job.matchScore}% Match`);
+          }
+
+          if (job.jobPosition.toLowerCase().includes('react') || job.jobPosition.toLowerCase().includes('frontend')) tags.push('React', 'Frontend');
+          else if (job.jobPosition.toLowerCase().includes('backend') || job.jobPosition.toLowerCase().includes('node')) tags.push('Node.js', 'Backend');
+          else if (job.jobPosition.toLowerCase().includes('manager')) tags.push('Management', 'Agile');
+          else tags.push('Full Time');
+
+          if (job.location) tags.push(job.location);
+
+          // Mock salary
+          const minSalary = 80 + (idx * 5);
+          const maxSalary = minSalary + 30;
+
           return (
-            <div key={key} className="relative group p-0 rounded-2xl overflow-hidden shadow-lg border border-[#f1e9ea] bg-white hover:shadow-xl hover:border-[#be3144]/50 transition-all duration-200 hover:scale-[1.01] flex flex-col h-full">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#be3144] to-[#f05941]" />
-              <div className="flex items-center gap-4 px-6 pt-6 pb-2">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#be3144] to-[#f05941] flex items-center justify-center text-white font-bold text-2xl shadow-lg border-4 border-white group-hover:border-[#be3144] transition-all">
-                  {job.jobPosition?.charAt(0) || 'J'}
+            <div
+              key={key}
+              className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full relative group"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl ${colorClass}`}>
+                  {letter}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-xl text-[#191011] truncate mb-1 group-hover:text-[#be3144] transition-colors flex items-center gap-2">
-                    {job.jobPosition}
-                    {typeof job.matchScore === 'number' && (
-                      <span className="inline-block ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#f1e9ea] text-[#be3144] border border-[#e4d3d5]">
-                        Match: {job.matchScore}%
-                      </span>
-                    )}
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {job.recruiterName || job.createdBy ? (
-                      <span className="inline-block text-xs font-medium bg-[#f1e9ea] text-[#be3144] px-2 py-0.5 rounded-full border border-[#e4d3d5]">
-                        {job.recruiterName || job.createdBy}
-                      </span>
-                    ) : null}
-                    <span className="inline-block text-xs font-medium bg-[#f1e9ea] text-[#8e575f] px-2 py-0.5 rounded-full border border-[#e4d3d5]">
-                      {job._type === 'call' ? 'Call Interview' : 'Video Interview'}
-                    </span>
-                  </div>
-                </div>
+                <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" /></svg>
+                </button>
               </div>
-              <div className="px-6 pb-6 flex-1 flex flex-col">
-                <p className="text-sm text-[#191011] mb-4 line-clamp-3 min-h-[48px]">
-                  {job.jobDescription || job.jobDesc || 'No description provided.'}
-                </p>
-                <div className="mt-auto">
-                  <div className="flex items-center text-xs text-[#8e575f] mb-2">
-                    {job.location && (
-                      <span className="flex items-center mr-3">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {job.location}
-                      </span>
-                    )}
-                    {job.createdAt && (
-                      <span className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {new Date(job.createdAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    className="w-full py-3 text-base font-bold bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#be3144] text-white rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all hover:shadow-xl"
-                    onClick={handleViewDetails}
-                  >
-                    <span>View Details</span>
-                    <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </Button>
+
+              <h3 className="font-bold text-[#1a1a1a] text-xl mb-2 line-clamp-1" title={job.jobPosition}>
+                {job.jobPosition}
+              </h3>
+
+              <div className="text-sm text-gray-500 mb-6 flex items-center font-medium">
+                <span>{(job.recruiterName || job.createdBy || 'Tech Corp Inc.')}</span>
+                <span className="mx-2 text-gray-300">•</span>
+                <span>{job.location || 'Remote'}</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-8">
+                {tags.map((tag, i) => {
+                  const isMatchScore = tag.includes('% Match');
+                  return (
+                    <span key={i} className={`text-xs font-semibold px-3 py-1.5 rounded-full ${isMatchScore ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}`}>
+                      {tag}
+                    </span>
+                  );
+                })}
+              </div>
+
+              <div className="mt-auto flex items-end justify-between">
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-400 font-medium mb-1">Salary</span>
+                  <span className="text-base font-bold text-[#1a1a1a]">${minSalary}k - ${maxSalary}k</span>
                 </div>
+                <Button
+                  onClick={handleViewDetails}
+                  className="bg-[#1a1a1a] text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-black transition-all hover:shadow-lg active:scale-95 h-auto"
+                >
+                  View Details
+                </Button>
               </div>
             </div>
           );
