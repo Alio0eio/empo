@@ -1,8 +1,5 @@
 "use client";
 import React, { useEffect, useState, Suspense, useRef } from 'react';
-import { db } from '@/utils/db';
-import { callInterview, MockInterview } from '@/utils/schema';
-import { desc, eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Loader2, ArrowLeft, ChevronRight, Search, Filter, X, User, Pencil, Book, PhoneCall, Info, Handshake, Mail, Settings, LogOut } from 'lucide-react';
@@ -58,10 +55,13 @@ const interviewTypes = [
 function JobSeekerJobCard({ job }) {
   const router = useRouter();
   const handleViewDetails = () => {
-    if (job._type === 'call') {
+    if (job._type === 'call' && job.job_id) {
       router.push(`/job-seeker/job/call/${job.job_id}`);
-    } else {
+    } else if (job._type === 'mock' && job.mockId) {
       router.push(`/job-seeker/job/mock/${job.mockId}`);
+    } else if (job.id) {
+      // Dev/local-storage job details page
+      router.push(`/job-seeker/jobs/dev/${job.id}`);
     }
   };
 
@@ -158,7 +158,22 @@ function JobsPageContent() {
   const themeSecondaryText = '#8e575f';
 
   useEffect(() => {
-    fetchAllJobs();
+    // Load jobs from localStorage for dev/demo use
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem('devJobs');
+        const jobs = raw ? JSON.parse(raw) : [];
+        setAllJobs(Array.isArray(jobs) ? jobs : []);
+      } catch (e) {
+        console.error('Failed to load jobs from localStorage', e);
+        setAllJobs([]);
+      } finally {
+        setLoadingJobs(false);
+      }
+    } else {
+      setLoadingJobs(false);
+    }
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
@@ -175,23 +190,20 @@ function JobsPageContent() {
     }
   }, [isLoaded, user]);
 
-  const fetchAllJobs = async () => {
-    try {
-      const callJobs = await db.select().from(callInterview).orderBy(desc(callInterview.createdAt));
-      const callJobsWithType = callJobs.map(j => ({ ...j, _type: 'call', type: 'Call Interview', jobDescription: j.jobDescription }));
-      const mockJobs = await db.select().from(MockInterview).where(eq(MockInterview.isHidden, false)).orderBy(desc(MockInterview.createdAt));
-      const mockJobsWithType = mockJobs.map(j => ({ ...j, _type: 'mock', type: 'Video Interview', jobDescription: j.jobDesc }));
-      setAllJobs([...callJobsWithType, ...mockJobsWithType]);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-    } finally {
-      setLoadingJobs(false);
-    }
-  };
+  // Note: fetchAllJobs is no longer used; jobs come from localStorage only in this dev setup.
 
   // Filter jobs by selected category, type, and search query
   const filteredJobs = allJobs.filter(job => {
-    const categoryMatch = selectedCategory === 'All Categories' || (job.category || '').toLowerCase() === selectedCategory.toLowerCase();
+    const normalizedSelectedCategory = selectedCategory.toLowerCase();
+
+    const categoryMatch =
+      selectedCategory === 'All Categories' ||
+      // Match single category field (existing DB-based jobs)
+      (job.category && job.category.toLowerCase() === normalizedSelectedCategory) ||
+      // Match array of categories from mock job store
+      (Array.isArray(job.jobCategories) &&
+        job.jobCategories.some(cat => cat.toLowerCase() === normalizedSelectedCategory));
+
     const typeMatch = selectedType === 'all' || job.type === selectedType;
     const query = searchQuery.toLowerCase();
     const searchMatch =

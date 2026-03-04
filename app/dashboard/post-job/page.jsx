@@ -248,7 +248,7 @@ export default function PostJobPage() {
     
     setLoading(true);
     setError('');
-    
+
     const details = {
       jobTitle,
       jobCategories: selectedCategories,
@@ -273,22 +273,51 @@ export default function PostJobPage() {
       education,
       academicExcellence,
     };
-    
+
     try {
-      const response = await fetch('/api/job-details', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(details),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setJobDetails({ ...details, id: data.id });
-        setStep('chooseType');
+      // Simple client-side storage for dev/demo only
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem('devJobs');
+        const existing = raw ? JSON.parse(raw) : [];
+        const job = {
+          id: Date.now(),
+          jobPosition: jobTitle,
+          jobDescription: jobDesc,
+          jobRequirements: jobReq,
+          jobCategories: selectedCategories,
+          jobTypes: selectedTypes,
+          workplace: selectedWorkplace,
+          country: selectedCountry,
+          city: selectedCity,
+          careerLevel: selectedCareer,
+          minExperience: minExp ? parseInt(minExp) : null,
+          maxExperience: maxExp ? parseInt(maxExp) : null,
+          minSalary: minSalary ? parseInt(minSalary) : null,
+          maxSalary: maxSalary ? parseInt(maxSalary) : null,
+          currency,
+          period,
+          hideSalary,
+          additionalSalary,
+          vacancies,
+          skills,
+          gender,
+          education,
+          academicExcellence,
+          recruiterName: 'Demo Recruiter',
+          location: selectedCity && selectedCountry ? `${selectedCity}, ${selectedCountry}` : selectedCountry || '',
+          type: 'Video Interview',
+          _type: 'mock',
+          createdAt: new Date().toISOString(),
+        };
+        const updated = [...existing, job];
+        window.localStorage.setItem('devJobs', JSON.stringify(updated));
+        setJobDetails(job);
+        setSuccess(true);
       } else {
-        setError(data.error || 'Failed to save job details');
+        setError('window.localStorage is not available in this environment.');
       }
     } catch (err) {
-      setError('Failed to save job details');
+      setError('Failed to save job details locally.');
     } finally {
       setLoading(false);
     }

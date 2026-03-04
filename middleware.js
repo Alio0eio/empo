@@ -1,14 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/job-seeker(.*)',
-  ]);
+]);
 
-  export default clerkMiddleware(async (auth, req) => {
-    if (isProtectedRoute(req)) await auth.protect()
-  });
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
@@ -18,3 +19,4 @@ export const config = {
     '/(api|trpc)(.*)',
   ],
 };
+
