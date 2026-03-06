@@ -48,8 +48,18 @@ export default function JobRecommendations() {
       setLoading(true);
       setError('');
       const response = await fetch(`/api/job-recommendations?userId=${user.id}&limit=50`);
-      const data = await response.json();
+      
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Error parsing API response as JSON:', parseError);
+        throw new Error(`Failed to parse API response: ${parseError.message}`);
+      }
+      
       if (!response.ok) {
+        console.error('API returned error status:', response.status, 'Data:', data);
         if (response.status === 404) {
           setUserProfile(data.userProfile || {});
           setRawRecommendations([]);
@@ -57,11 +67,12 @@ export default function JobRecommendations() {
           setLoading(false);
           return;
         }
-        throw new Error('Failed to fetch job data for enhancement');
+        throw new Error(data.details || 'Failed to fetch job data for enhancement');
       }
-      setRawRecommendations(data.recommendations);
+      
+      setRawRecommendations(data.recommendations || []);
       setUserProfile(data.userProfile);
-      const mapped = data.recommendations.map(job => {
+      const mapped = (data.recommendations || []).map(job => {
         if (job._type === 'call' || job._type === 'mock') return job;
         if (job.job_id) {
           return {
@@ -86,10 +97,8 @@ export default function JobRecommendations() {
         console.log('Mapped recommendations:', mapped);
       }
     } catch (error) {
-      if (!error.message.includes('404')) {
-        console.error('Error generating enhanced recommendations:', error);
-        setError('Failed to generate enhanced recommendations');
-      }
+      console.error('Error in generateEnhancedRecommendations:', error);
+      setError(error.message || 'Failed to generate enhanced recommendations');
     } finally {
       setLoading(false);
     }

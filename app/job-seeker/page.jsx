@@ -106,13 +106,19 @@ export default function JobSeekerPage() {
 
   const fetchAllJobs = async () => {
     try {
-      const callJobs = await db.select().from(callInterview).orderBy(desc(callInterview.createdAt));
-      const callJobsWithType = callJobs.map(j => ({ ...j, _type: 'call', type: 'Call Interview', jobDescription: j.jobDescription }));
-      const mockJobs = await db.select().from(MockInterview).where(eq(MockInterview.isHidden, false)).orderBy(desc(MockInterview.createdAt));
-      const mockJobsWithType = mockJobs.map(j => ({ ...j, _type: 'mock', type: 'Video Interview', jobDescription: j.jobDesc }));
-      setAllJobs([...callJobsWithType, ...mockJobsWithType]);
+      const userId = user?.id || 'dev-user';
+      const response = await fetch(`/api/job-recommendations?userId=${userId}&limit=50`);
+
+      if (!response.ok) {
+        console.error('Failed to fetch latest jobs from recommendations API', response.status);
+        setAllJobs([]);
+        return;
+      }
+
+      const data = await response.json();
+      setAllJobs(data.latestJobs || []);
     } catch (error) {
-      console.error('Failed to fetch jobs:', error);
+      console.error('Failed to fetch latest jobs from recommendations API:', error);
     } finally {
       setLoadingJobs(false);
     }
