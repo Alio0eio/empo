@@ -1,9 +1,6 @@
 "use client"
 import { useUser, useClerk } from '@clerk/nextjs';
 import { useEffect, useState, useRef } from 'react';
-import { db } from '@/utils/db';
-import { MockInterview, callInterview } from '@/utils/schema';
-import { desc, eq } from 'drizzle-orm';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -17,7 +14,7 @@ import CallInterviewCard from '../dashboard/_components/CallInterviewCard';
 import Header from "../dashboard/_components/Header";
 import Image from 'next/image';
 import LatestJobsSection from './LatestJobsSection';
-import JobRecommendations from './_components/JobRecommendations';
+// import JobRecommendations from './_components/JobRecommendations';
 import UserAvatar from '@/components/UserAvatar';
 
 export default function JobSeekerPage() {
@@ -48,13 +45,10 @@ export default function JobSeekerPage() {
   ];
 
   useEffect(() => {
-    if (isLoaded && user) {
-      fetchInterviews();
-    }
     if (isLoaded) {
       fetchAllJobs();
     }
-  }, [user, isLoaded]);
+  }, [isLoaded]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,36 +83,18 @@ export default function JobSeekerPage() {
     }
   }, [isLoaded, user]);
 
-  const fetchInterviews = async () => {
-    try {
-      const result = await db.select()
-        .from(MockInterview)
-        .where(eq(MockInterview.createdBy, user?.primaryEmailAddress?.emailAddress))
-        .orderBy(desc(MockInterview.createdAt));
-
-      setInterviewList(result);
-    } catch (error) {
-      console.error("Failed to fetch interviews:", error);
-    } finally {
-      setLoadingInterviews(false);
-    }
-  };
-
   const fetchAllJobs = async () => {
     try {
-      const userId = user?.id || 'dev-user';
-      const response = await fetch(`/api/job-recommendations?userId=${userId}&limit=50`);
-
-      if (!response.ok) {
-        console.error('Failed to fetch latest jobs from recommendations API', response.status);
+      // In development, load jobs from localStorage (same source as the Jobs page)
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem('devJobs');
+        const jobs = raw ? JSON.parse(raw) : [];
+        setAllJobs(Array.isArray(jobs) ? jobs : []);
+      } else {
         setAllJobs([]);
-        return;
       }
-
-      const data = await response.json();
-      setAllJobs(data.latestJobs || []);
     } catch (error) {
-      console.error('Failed to fetch latest jobs from recommendations API:', error);
+      console.error('Failed to load jobs from localStorage:', error);
     } finally {
       setLoadingJobs(false);
     }
@@ -130,8 +106,6 @@ export default function JobSeekerPage() {
 
   // Calculate interview stats
   const completedInterviews = interviewList.length;
-  const avgRating = interviewList.reduce((acc, curr) => acc + (curr.rating || 0), 0) / completedInterviews || 0;
-  const lastInterviewDate = interviewList[0]?.createdAt;
 
   // User-friendly job card for job seekers
   function JobSeekerJobCard({ job }) {
@@ -435,10 +409,7 @@ export default function JobSeekerPage() {
           </div>
         </section>
 
-        {/* Job Recommendations Section */}
-        <section className="mb-10">
-          <JobRecommendations />
-        </section>
+        {/* AI Job Recommendations temporarily disabled in dev (no DB) */}
 
         <LatestJobsSection allJobs={allJobs} loadingJobs={loadingJobs} />
       </main>

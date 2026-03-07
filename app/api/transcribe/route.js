@@ -1,8 +1,9 @@
-import { OpenAI } from 'openai';
+import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 export async function POST(request) {
@@ -17,11 +18,11 @@ export async function POST(request) {
       );
     }
 
-    // Convert to OpenAI-compatible format
+    // Convert to Groq-compatible format
     const buffer = await file.arrayBuffer();
-    const transcription = await openai.audio.transcriptions.create({
+    const transcription = await groq.audio.transcriptions.create({
       file: new Blob([buffer], { type: file.type }),
-      model: 'whisper-1',
+      model: 'whisper-large-v3',
     });
 
     return NextResponse.json({

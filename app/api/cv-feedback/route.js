@@ -3,15 +3,15 @@ import { NextResponse } from 'next/server';
 export async function POST(req) {
   const { cvText } = await req.json();
 
-  // Call OpenAI API (or similar) for feedback
-  const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+  // Call Gemini API for feedback (OpenAI-compatible endpoint)
+  const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gemini-2.0-flash',
       messages: [
         {
           role: 'system',
@@ -26,8 +26,8 @@ export async function POST(req) {
     }),
   });
 
-  const data = await openaiRes.json();
-  console.log('OpenAI response:', data);
+  const data = await geminiRes.json();
+  console.log('Gemini response:', data);
   const feedback = data.choices?.[0]?.message?.content || 'No feedback generated.';
 
   return NextResponse.json({ feedback });

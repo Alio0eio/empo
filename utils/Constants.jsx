@@ -74,24 +74,35 @@ Interview Type: {{type}}
 
 Your task:
 
-Analyze the job description to identify key responsibilities, required skills, and expected experience.
+1. Analyze the job description to identify key responsibilities, required skills, and expected experience.
+2. Generate a list of interview questions based on the interview duration.
+3. Adjust the number and depth of questions to match the interview duration.
+4. Ensure the questions match the tone and structure of a real-life {{type}} interview.
+5. For the 'type' field in each question, use one of these values: Technical, Behavioral, Experience, Problem Solving, or Leadership.
 
-Generate a list of interview questions depends on interview duration
+IMPORTANT: You MUST respond with ONLY valid JSON, no markdown, no extra text.
+Your response must be a valid JSON object with the following structure:
 
-Adjust the number and depth of questions to match the interview duration.
-
-Ensure the questions match the tone and structure of a real-life {{type}} interview.
-
-Format your response in JSON format with array list of questions. 
-format: interviewQuestions=[
 {
-    question:'',
-    type: Technical/Behavioral/Experince/Problem Solving/Leadership'
-},{
-...
-}]
+  "interviewQuestions": [
+    {
+      "question": "Your question here?",
+      "type": "Technical"
+    },
+    {
+      "question": "Another question?",
+      "type": "Behavioral"
+    }
+  ]
+}
 
-The goal is to create a structured, relevant, and time-optimized interview plan for a {{job Title}} role.`
+Guidelines:
+- Each question should be clear, concise, and relevant to the {{jobTitle}} role
+- Include a good mix of question types ({{type}})
+- Number of questions should match the interview duration (shorter duration = fewer questions)
+- The goal is to create a structured, relevant, and time-optimized interview plan
+
+Remember: Respond with ONLY the JSON object, nothing else.`
 
 export const FEEDBACK_PROMPT = `((conversation}}
 Depends on this Interview Conversation between assitant and user,

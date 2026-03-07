@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import UserAvatar from '@/components/UserAvatar';
-import JobRecommendations from '../_components/JobRecommendations';
+// import JobRecommendations from '../_components/JobRecommendations';
 
 // Job categories (full list for filter)
 const jobCategories = [
@@ -149,7 +149,7 @@ function JobsPageContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [showRecommendations, setShowRecommendations] = useState(false);
+  // const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Theme colors
   const themePrimary = '#FF4B4B';
@@ -525,19 +525,11 @@ function JobsPageContent() {
               <h2 className="text-2xl font-bold text-[#191011]">
                 {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
               </h2>
-              <Button
-                variant={showRecommendations ? 'default' : 'outline'}
-                className={showRecommendations ? 'bg-gradient-to-r from-[#FF4B4B] to-[#f05941] text-white' : 'border-[#FF4B4B] text-[#FF4B4B] hover:bg-[#FF4B4B]/10'}
-                onClick={() => setShowRecommendations(v => !v)}
-              >
-                {showRecommendations ? 'Show All Jobs' : 'Show AI Recommendations'}
-              </Button>
+              {/* AI recommendations temporarily disabled in dev (no DB) */}
             </div>
 
-            {showRecommendations ? (
-              <JobRecommendations />
-            ) : (
-              loadingJobs ? (
+            {/* Only show standard jobs list in this dev setup */}
+              {loadingJobs ? (
                 <div className="flex justify-center items-center h-40">
                   <Loader2 className="w-8 h-8 animate-spin text-[#FF4B4B]" />
                   <span className="ml-2 text-[#8e575f]">Loading jobs...</span>
@@ -611,8 +603,7 @@ function JobsPageContent() {
                 </>
               ) : (
                 <div className="text-center text-[#8e575f] py-12 text-lg">No jobs found matching your criteria.</div>
-              )
-            )}
+              )}
           </div>
         </div>
       </main>

@@ -8,7 +8,7 @@ export default function LatestJobsSection({ allJobs, loadingJobs = false }) {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a1a] mb-2">Latest Job Openings</h2>
-          <p className="text-gray-500">Recommended based on your profile</p>
+          <p className="text-gray-500">Newest jobs uploaded by recruiters</p>
         </div>
         <Link href="/job-seeker/jobs" className="text-[#FF4B4B] font-semibold hover:underline flex items-center gap-1">
           View all <ArrowRight className="w-4 h-4 ml-1" />
@@ -23,10 +23,11 @@ export default function LatestJobsSection({ allJobs, loadingJobs = false }) {
       ) : allJobs && allJobs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {allJobs.slice(0, 8).map((job, idx) => {
-            // Determine the correct route based on job type
-            const jobRoute = job._type === 'mock'
-              ? `/job-seeker/job/mock/${job.mockId}`
-              : `/job-seeker/job/${job.job_id}`;
+            // For now, all jobs come from the Job Openings page (localStorage 'devJobs').
+            // "Apply" should first take the user to the job details page.
+            const detailsRoute = job?.id
+              ? `/job-seeker/jobs/dev/${job.id}`
+              : '/job-seeker/jobs';
 
             // Generate deterministic random data for UI demo purposes
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -36,9 +37,10 @@ export default function LatestJobsSection({ allJobs, loadingJobs = false }) {
 
             // Mock tags based on job title words
             const tags = [];
-            if (job.jobPosition.toLowerCase().includes('react') || job.jobPosition.toLowerCase().includes('frontend')) tags.push('React', 'Frontend');
-            else if (job.jobPosition.toLowerCase().includes('backend') || job.jobPosition.toLowerCase().includes('node')) tags.push('Node.js', 'Backend');
-            else if (job.jobPosition.toLowerCase().includes('manager')) tags.push('Management', 'Agile');
+            const jobPositionText = (job?.jobPosition || '').toLowerCase();
+            if (jobPositionText.includes('react') || jobPositionText.includes('frontend')) tags.push('React', 'Frontend');
+            else if (jobPositionText.includes('backend') || jobPositionText.includes('node')) tags.push('Node.js', 'Backend');
+            else if (jobPositionText.includes('manager')) tags.push('Management', 'Agile');
             else tags.push('Full Time', 'Remote');
 
             // Mock salary
@@ -83,7 +85,7 @@ export default function LatestJobsSection({ allJobs, loadingJobs = false }) {
                     <span className="text-base font-bold text-[#1a1a1a]">${minSalary}k - ${maxSalary}k</span>
                   </div>
                   <Link
-                    href={jobRoute}
+                    href={detailsRoute}
                     className="bg-[#1a1a1a] text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-black transition-all hover:shadow-lg active:scale-95"
                   >
                     Apply Now

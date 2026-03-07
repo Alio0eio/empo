@@ -8,6 +8,7 @@ import QuestionList from './_components/QuestionList';
 import { toast } from 'sonner';
 import InterviewLink from './_components/InterviewLink';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDevJob } from '@/utils/devInterviewStore';
 
 function CreateInterview() {
     const router = useRouter();
@@ -20,21 +21,20 @@ function CreateInterview() {
     const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
-      if (jobDetailsId) {
-        fetch(`/api/job-details/${jobDetailsId}`)
-          .then(res => res.json())
-          .then(data => setJobDetails(data))
-          .catch(() => setJobDetails(null));
-      }
+        if (jobDetailsId) {
+            // Load job details from localStorage (dev mode)
+            const job = getDevJob(jobDetailsId);
+            setJobDetails(job);
+        }
     }, [jobDetailsId]);
 
     useEffect(() => {
-      if (jobDetailsId) {
-        setFormData(prev => ({
-          ...prev,
-          jobDetailsId: Number(jobDetailsId)
-        }));
-      }
+        if (jobDetailsId) {
+            setFormData(prev => ({
+                ...prev,
+                jobDetailsId: Number(jobDetailsId)
+            }));
+        }
     }, [jobDetailsId]);
 
     const onHandleInputChange = (field, value) => {
@@ -99,8 +99,8 @@ function CreateInterview() {
             </div>
 
             <div className='mb-8'>
-                <Progress 
-                    value={step * 33.33} 
+                <Progress
+                    value={step * 33.33}
                     className={`h-2 transition-all duration-500 ${progressColors[step - 1]}`}
                 />
                 <div className='flex justify-between mt-2 text-xs text-gray-500'>
@@ -120,23 +120,23 @@ function CreateInterview() {
                         className='mb-10'
                     >
                         {step === 1 && (
-                            <FormContainer 
+                            <FormContainer
                                 onHandleInputChange={onHandleInputChange}
-                                GoToNext={onGoToNext} 
+                                GoToNext={onGoToNext}
                                 jobDetails={jobDetails}
                                 jobDetailsId={jobDetailsId}
                             />
                         )}
                         {step === 2 && (
-                            <QuestionList 
-                                formData={formData} 
-                                onCreateLink={onCreateLink} 
+                            <QuestionList
+                                formData={formData}
+                                onCreateLink={onCreateLink}
                                 onBack={() => handleStepChange(step - 1)}
                                 jobDetails={jobDetails}
                             />
                         )}
                         {step === 3 && (
-                            <InterviewLink 
+                            <InterviewLink
                                 job_id={jobId}
                                 formData={formData}
                                 onBack={() => handleStepChange(step - 1)}
@@ -150,9 +150,9 @@ function CreateInterview() {
 }
 
 export default function CreateInterviewPageWithSuspense(props) {
-  return (
-    <Suspense>
-      <CreateInterview {...props} />
-    </Suspense>
-  );
+    return (
+        <Suspense>
+            <CreateInterview {...props} />
+        </Suspense>
+    );
 }

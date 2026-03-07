@@ -14,12 +14,13 @@ export async function POST(req) {
     .replace('{{conversation}}', JSON.stringify(conversation));
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    const gemini = new OpenAI({
+      apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
     });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await gemini.chat.completions.create({
+      model: "gemini-2.0-flash",
       messages: [
         systemMessage,
         {

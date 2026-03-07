@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AddNewInterview from '../_components/AddNewInterview';
+import { getDevJob } from '@/utils/devInterviewStore';
 
 function CreateMockInterview() {
   const router = useRouter();
@@ -17,10 +18,9 @@ function CreateMockInterview() {
 
   useEffect(() => {
     if (jobDetailsId) {
-      fetch(`/api/job-details/${jobDetailsId}`)
-        .then(res => res.json())
-        .then(data => setJobDetails(data))
-        .catch(() => setJobDetails(null));
+      // Load job details from localStorage (dev mode)
+      const job = getDevJob(jobDetailsId);
+      setJobDetails(job);
     }
   }, [jobDetailsId]);
 
@@ -36,7 +36,7 @@ function CreateMockInterview() {
         </button>
         <h1 className='text-2xl font-bold'>Create Mock Interview</h1>
       </div>
-      <AddNewInterview open={true} setOpen={() => {}} jobDetails={jobDetails} jobDetailsId={jobDetailsId} />
+      <AddNewInterview open={true} setOpen={() => { }} jobDetails={jobDetails} jobDetailsId={jobDetailsId} />
     </div>
   );
 }

@@ -2,9 +2,7 @@
 import { InterviewDataContext } from '@/app/context/InterviewDataContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { db } from '@/utils/db'
-import { callInterview } from '@/utils/schema'
-import { eq } from 'drizzle-orm'
+import { getCallInterview } from '@/utils/devInterviewStore'
 import { Clock, Info, Loader2Icon, Settings, Video } from 'lucide-react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -12,41 +10,39 @@ import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 function Call_Interview() {
-    
+
     const { job_id } = useParams();
     console.log(job_id)
-    const [interviewData,setInterviewData] = useState();
-    const [userName,setUserName] = useState();
-    const [userEmail,setUserEmail] = useState();
-    const [loading,setLoading] = useState(false);
-    const { interviewInfo,setInterviewInfo }=useContext(InterviewDataContext);
+    const [interviewData, setInterviewData] = useState();
+    const [userName, setUserName] = useState();
+    const [userEmail, setUserEmail] = useState();
+    const [loading, setLoading] = useState(false);
+    const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
     const router = useRouter();
 
-    useEffect(()=>{
-        job_id&&GetInterviewDetails();
-    },[job_id])
+    useEffect(() => {
+        job_id && GetInterviewDetails();
+    }, [job_id])
 
     const GetInterviewDetails = async () => {
         try {
             setLoading(true);
 
-            const result = await db
-                .select({
-                    jobPosition: callInterview.jobPosition,
-                    jobDescription: callInterview.jobDescription,
-                    duration: callInterview.duration,
-                    type: callInterview.type,
-                    job_id: callInterview.job_id,
-                })
-                .from(callInterview)
-                .where(eq(callInterview.job_id, job_id));
+            // Read from localStorage (dev mode)
+            const result = getCallInterview(job_id);
 
-            if (result.length === 0) {
+            if (!result) {
                 toast('Incorrect Interview Link');
                 return;
             }
 
-            setInterviewData(result[0]);
+            setInterviewData({
+                jobPosition: result.jobPosition,
+                jobDescription: result.jobDescription,
+                duration: result.duration,
+                type: result.type,
+                job_id: result.job_id,
+            });
             return result;
         } catch (error) {
             toast('Incorrect Interview Link');
@@ -57,8 +53,8 @@ function Call_Interview() {
 
     const handleTestCamera = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: true, 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
@@ -67,9 +63,9 @@ function Call_Interview() {
                     channelCount: 1
                 }
             });
-            
+
             toast.success('Camera and microphone are working!');
-            
+
             stream.getTracks().forEach(track => track.stop());
         } catch (error) {
             toast.error('Error accessing camera or microphone: ' + error.message);
@@ -77,67 +73,65 @@ function Call_Interview() {
     };
 
     const onJoinInterview = async () => {
-    try {
-        setLoading(true);
+        try {
+            setLoading(true);
 
-        const result = await db
-            .select()
-            .from(callInterview)
-            .where(eq(callInterview.job_id, job_id));
+            // Read from localStorage (dev mode)
+            const result = getCallInterview(job_id);
 
-        if (result.length === 0) {
-            toast.error("No interview found with this ID.");
+            if (!result) {
+                toast.error("No interview found with this ID.");
+                setLoading(false);
+                return;
+            }
+
+            console.log(result);
+
+            setInterviewInfo({
+                userName: userName,
+                userEmail: userEmail,
+                interviewData: result
+            });
+            router.push('/job-seeker/Call-Interview/' + job_id + '/start')
+        } catch (error) {
+            toast.error("Something went wrong while joining the interview.");
+            console.error(error);
+        } finally {
             setLoading(false);
-            return;
         }
-
-        console.log(result[0]);
-
-        setInterviewInfo({
-            userName:userName,
-            userEmail:userEmail,
-            interviewData: result[0]
-        }); 
-        router.push('/job-seeker/Call-Interview/' + job_id + '/start')
-    } catch (error) {
-        toast.error("Something went wrong while joining the interview.");
-        console.error(error);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
 
     return (
-        <div className='px-10 md:px-28 lg:px-48 xl:px-80 mt-7'> 
+        <div className='px-10 md:px-28 lg:px-48 xl:px-80 mt-7'>
             <div className='flex flex-col items-center justify-center border rounded-lg bg-white p-7 lg:px-33 xl:px-52 mb-20 pb-15'>
-                <Image 
-                    src={'/logo.png'} 
-                    width={200} 
-                    height={100} 
+                <Image
+                    src={'/logo.png'}
+                    width={200}
+                    height={100}
                     alt='logo'
                     className="w-[85px]"
                 />
                 <h2 className='mt-3'>AI-Powered Interview Platform</h2>
-                <Image 
+                <Image
                     src={'/two-men.png'}
-                    width={500} 
-                    height={500} 
+                    width={500}
+                    height={500}
                     alt={'two-men'}
                     className="w-[350px] my-6"
                 />
 
                 <h2 className='font-bold text-xl'>{interviewData?.jobPosition}</h2>
-                <h2 className='flex gap-2 items-center text-gray-500 mt-3'><Clock className='h-4 w-4'/> {interviewData?.duration}</h2>
-            
+                <h2 className='flex gap-2 items-center text-gray-500 mt-3'><Clock className='h-4 w-4' /> {interviewData?.duration}</h2>
+
                 <div className='w-full'>
                     <h2>Enter your full name</h2>
-                    <Input placeholder='e.g. Jhon Smith' onChange={(event)=>setUserName(event.target.value)} />
+                    <Input placeholder='e.g. Jhon Smith' onChange={(event) => setUserName(event.target.value)} />
                 </div>
 
                 <div className='w-full'>
                     <h2>Enter your Email</h2>
-                    <Input placeholder='e.g. example@gmail.com' onChange={(event)=>setUserEmail(event.target.value)} />
+                    <Input placeholder='e.g. example@gmail.com' onChange={(event) => setUserEmail(event.target.value)} />
                 </div>
 
                 <div className='p-3 bg-red-100 flex gap-4 rounded-2xl mt-5'>
@@ -154,17 +148,17 @@ function Call_Interview() {
 
                 <Button className='mt-5 w-full font-bold'
                     disabled={loading || !userName}
-                    onClick={()=> onJoinInterview()}
-                > 
-                    <Video/> {loading&&<Loader2Icon/>} Join Interview
+                    onClick={() => onJoinInterview()}
+                >
+                    <Video /> {loading && <Loader2Icon />} Join Interview
                 </Button>
 
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     className='mt-3 w-full'
                     onClick={handleTestCamera}
                 >
-                    <Settings/> Test Camera & Microphone
+                    <Settings /> Test Camera & Microphone
                 </Button>
 
             </div>

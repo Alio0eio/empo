@@ -1,7 +1,6 @@
 "use client";
-import { db } from '@/utils/db';
-import { UserAnswer, MockInterview } from '@/utils/schema';
-import { eq, and } from 'drizzle-orm';
+import { getOrCreateMockInterview } from '@/utils/devInterviewStore';
+import { getUserAnswers, saveUserAnswer } from '@/utils/devInterviewStore';
 import React, { useEffect, useState, use, Suspense } from 'react';
 import { ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,7 @@ function FeedbackContent({ params }) {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionProgress, setSessionProgress] = useState(null);
   const router = useRouter();
-  
+
   const [interviewData, setInterviewData] = useState({
     interviewType: '',
     jobPosition: '',
@@ -42,47 +41,30 @@ function FeedbackContent({ params }) {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        
-        // Get interview metadata
-        const interviewMeta = await db.select()
-          .from(MockInterview)
-          .where(eq(MockInterview.mockId, interviewId));
-        
-        if (interviewMeta[0]) {
+
+        // Get interview metadata from localStorage (dev mode)
+        const interviewMeta = await getOrCreateMockInterview(interviewId);
+
+        if (interviewMeta) {
           setInterviewData({
-            interviewType: interviewMeta[0].interviewType,
-            jobPosition: interviewMeta[0].jobPosition,
-            careerLevel: interviewMeta[0].careerLevel,
-            jobExperience: interviewMeta[0].jobExperience
+            interviewType: interviewMeta.interviewType,
+            jobPosition: interviewMeta.jobPosition,
+            careerLevel: interviewMeta.careerLevel,
+            jobExperience: interviewMeta.jobExperience
           });
         }
 
-        // Get answers based on session or all answers if no session specified
-        let answers;
-        if (sessionId) {
-          // Get answers for specific session
-          answers = await db.select().from(UserAnswer)
-            .where(and(
-              eq(UserAnswer.mockIdRef, interviewId),
-              eq(UserAnswer.sessionId, sessionId)
-            ))
-            .orderBy(UserAnswer.questionIndex);
-        } else {
-          // Get all answers for the interview (for backward compatibility)
-          answers = await db.select().from(UserAnswer)
-            .where(eq(UserAnswer.mockIdRef, interviewId))
-            .orderBy(UserAnswer.createdAt);
-        }
-        
+        // Get answers from localStorage (dev mode)
+        const answers = getUserAnswers(interviewId, sessionId || null);
         setFeedbackList(answers);
 
         // Calculate session progress if sessionId is provided
-        if (sessionId && interviewMeta[0]) {
-          const jsonMockResp = JSON.parse(interviewMeta[0].jsonMockResp);
+        if (sessionId && interviewMeta) {
+          const jsonMockResp = JSON.parse(interviewMeta.jsonMockResp);
           const progress = calculateSessionProgress(answers, sessionId, jsonMockResp.length);
           setSessionProgress(progress);
         }
-        
+
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error('Failed to load interview data');
@@ -90,7 +72,7 @@ function FeedbackContent({ params }) {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, [interviewId, sessionId]);
 
@@ -106,26 +88,20 @@ function FeedbackContent({ params }) {
       toast.warning('Please provide an answer');
       return;
     }
-  
+
     setLoadingStates(prev => ({ ...prev, [questionId]: true }));
 
     try {
-      // Save answer to database
-      await db.insert(UserAnswer)
-        .values({
-          id: questionId,
-          mockIdRef: interviewId,
-          question: questionText,
-          userAns: answer,
-          createdAt: new Date()
-        })
-        .onConflictDoUpdate({
-          target: UserAnswer.id,
-          set: {
-            userAns: answer,
-            updatedAt: new Date()
-          }
-        });
+      // Save answer to localStorage (dev mode)
+      saveUserAnswer({
+        id: questionId,
+        mockIdRef: interviewId,
+        question: questionText,
+        userAns: answer,
+        sessionId: sessionId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
 
       // Clear the current answer from state
       setCurrentAnswers(prev => {
@@ -134,24 +110,11 @@ function FeedbackContent({ params }) {
         return newAnswers;
       });
 
-      // Refresh the question list
-      let updatedAnswers;
-      if (sessionId) {
-        updatedAnswers = await db.select().from(UserAnswer)
-          .where(and(
-            eq(UserAnswer.mockIdRef, interviewId),
-            eq(UserAnswer.sessionId, sessionId)
-          ))
-          .orderBy(UserAnswer.questionIndex);
-      } else {
-        updatedAnswers = await db.select().from(UserAnswer)
-          .where(eq(UserAnswer.mockIdRef, interviewId))
-          .orderBy(UserAnswer.createdAt);
-      }
-      
+      // Refresh the question list from localStorage
+      const updatedAnswers = getUserAnswers(interviewId, sessionId || null);
       setFeedbackList(updatedAnswers);
       toast.success('Answer saved successfully');
-      
+
     } catch (error) {
       console.error("Error saving answer:", error);
       toast.error('Failed to save answer');
@@ -187,7 +150,7 @@ function FeedbackContent({ params }) {
         <>
           <div className="mb-8">
             <h2 className='text-3xl font-bold text-green-600'>Interview Feedback</h2>
-            
+
             {/* Session Info */}
             {sessionId && (
               <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -220,13 +183,13 @@ function FeedbackContent({ params }) {
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5 mt-3">
-              <div 
-                className="bg-green-600 h-2.5 rounded-full transition-all duration-300" 
+              <div
+                className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             {feedbackList.map((item, index) => (
               <div key={item.id || index} className="border rounded-lg p-4">
@@ -294,13 +257,13 @@ function FeedbackContent({ params }) {
                           className="min-h-[120px]"
                         />
                         <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             onClick={() => handleAnswerChange(item.id, "")}
                           >
                             Clear
                           </Button>
-                          <Button 
+                          <Button
                             onClick={() => submitAnswer(item.id, item.question, currentAnswers[item.id])}
                             disabled={loadingStates[item.id] || !currentAnswers[item.id]?.trim()}
                             className="min-w-[120px]"
@@ -322,14 +285,14 @@ function FeedbackContent({ params }) {
           </div>
 
           <div className="mt-10 flex justify-between border-t pt-6">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => router.replace('/')}
             >
               Save and Exit
             </Button>
             {answeredCount + skippedCount === totalCount && totalCount > 0 && (
-              <Button 
+              <Button
                 onClick={() => router.push(`/interview/${interviewId}/results${sessionId ? `?sessionId=${sessionId}` : ''}`)}
                 className="bg-green-600 hover:bg-green-700"
               >

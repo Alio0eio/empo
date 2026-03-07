@@ -5,11 +5,9 @@ import Image from 'next/image';
 import React, { useContext, useEffect, useState, useRef } from 'react'
 import Vapi from "@vapi-ai/web";
 import { toast } from 'sonner';
-import { db } from '@/utils/db';
 import { useParams, useRouter } from 'next/navigation';
 import TimerComponent from './_components/TimerComponent';
 import axios from 'axios';
-import { callInterviewFeedback } from '@/utils/schema';
 
 function StartInterview() {
     const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
@@ -109,7 +107,7 @@ function StartInterview() {
         const assistantOptions = {
             name: "AI Recruiter",
             firstMessage: `Hi ${interviewInfo?.userName}, how are you? Ready for your interview on ${interviewInfo?.interviewData?.jobPosition}`,
-            transcriber: { 
+            transcriber: {
                 provider: "deepgram",
                 model: "nova-2",
                 language: "en-US",
@@ -238,7 +236,7 @@ Key Guidelines:
         <div className='p-20 lg:px-48 xl:px-50'>
             <h2 className='font-bold text-xl flex justify-between'>AI Interview Session
                 <span className='flex gap-2 items-center'>
-                    <Timer/>
+                    <Timer />
                     <TimerComponent start={true} />
                 </span>
             </h2>
@@ -247,7 +245,7 @@ Key Guidelines:
                 <div className='bg-white h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center'>
                     <div className='relative'>
                         {!activeUser && <span className="absolute inset-0 rounded-full bg-blue-500 opacity-75 animate-ping" />}
-                        <Image 
+                        <Image
                             src={'/ai.png'}
                             alt='AI Recruiter'
                             width={60}
@@ -270,12 +268,12 @@ Key Guidelines:
             </div>
 
             <div className='flex items-center gap-5 justify-center mt-7'>
-                <Mic 
+                <Mic
                     className={`h-12 w-12 p-3 ${isMuted ? 'bg-gray-300' : 'bg-primary'} text-white rounded-full cursor-pointer`}
                     onClick={toggleMute}
                 />
                 {!loading ? (
-                    <Phone 
+                    <Phone
                         className='h-12 w-12 p-3 bg-red-500 text-white rounded-full cursor-pointer'
                         onClick={stopInterview}
                     />

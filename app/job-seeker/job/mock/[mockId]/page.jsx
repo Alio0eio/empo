@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { db } from '@/utils/db';
-import { MockInterview } from '@/utils/schema';
-import { eq } from 'drizzle-orm';
+import { getOrCreateMockInterview } from '@/utils/devInterviewStore';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 
@@ -21,16 +19,9 @@ export default function MockJobDetailsPage() {
 
   const fetchJob = async () => {
     try {
-      const result = await db.select().from(MockInterview).where(eq(MockInterview.mockId, mockId));
-      const interview = result[0] || null;
+      // Read from localStorage (dev mode)
+      const interview = await getOrCreateMockInterview(mockId);
       setJob(interview);
-
-      // Fetch job details if jobDetailsId exists
-      if (interview?.jobDetailsId) {
-        const res = await fetch(`/api/job-details/${interview.jobDetailsId}`);
-        const details = await res.json();
-        setJobDetails(details);
-      }
     } catch (error) {
       setJob(null);
       setJobDetails(null);

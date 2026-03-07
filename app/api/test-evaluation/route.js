@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
+// Initialize Gemini client (OpenAI-compatible API)
 const client = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 export async function POST(req) {
@@ -30,7 +31,7 @@ export async function POST(req) {
     Return only valid JSON.`;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gemini-2.0-flash",
       messages: [
         { role: "system", content: "You are an expert interview evaluator. Return only valid JSON." },
         { role: "user", content: prompt }
@@ -40,7 +41,7 @@ export async function POST(req) {
 
     const content = completion.choices[0].message.content;
     let result;
-    
+
     try {
       result = JSON.parse(content.replace(/```json|```/g, '').trim());
     } catch (parseError) {

@@ -4,8 +4,9 @@ import { db } from '@/utils/db';
 import { CVAnalysis, UserProfile } from '@/utils/schema';
 import { eq } from 'drizzle-orm';
 
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+const gemini = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 export async function GET(req) {
@@ -83,7 +84,7 @@ export async function POST(req) {
 
     Take a deep breath and work on this problem step-by-step.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await gemini.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -94,7 +95,7 @@ export async function POST(req) {
           content: prompt
         }
       ],
-      model: "gpt-4o-mini",
+      model: "gemini-2.0-flash",
       response_format: { type: "json_object" },
     });
 
@@ -105,7 +106,7 @@ export async function POST(req) {
     if (userId) {
       try {
         console.log('Attempting to save CV analysis for userId:', userId);
-        
+
         const [cvAnalysis] = await db.insert(CVAnalysis).values({
           userId,
           originalFileName: originalFileName || null,
@@ -120,7 +121,7 @@ export async function POST(req) {
         // Check if user profile exists, if not create one
         const existingProfile = await db.select().from(UserProfile).where(UserProfile.userId.eq(userId));
         console.log('Existing profile found:', existingProfile.length > 0);
-        
+
         if (existingProfile.length === 0 && extractedData.email) {
           // Create user profile from CV data
           console.log('Creating new user profile');

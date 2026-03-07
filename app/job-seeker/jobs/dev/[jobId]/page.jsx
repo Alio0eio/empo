@@ -170,7 +170,10 @@ export default function DevJobDetailsPage() {
           </div>
 
           {/* CTA Button */}
-          <Button className="w-full bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#be3144] text-white font-semibold text-base py-6 rounded-lg">
+          <Button
+            className="w-full bg-gradient-to-r from-[#be3144] to-[#f05941] hover:from-[#f05941] hover:to-[#be3144] text-white font-semibold text-base py-6 rounded-lg"
+            onClick={() => router.push(`/interview/${jobId}`)}
+          >
             Apply Now
           </Button>
         </section>
@@ -327,7 +330,10 @@ export default function DevJobDetailsPage() {
           <p className="mb-6 text-white/90">
             Take the next step in your career and apply for this position today.
           </p>
-          <Button className="bg-white text-[#be3144] hover:bg-gray-100 font-semibold text-base px-8 py-3 rounded-lg">
+          <Button
+            className="bg-white text-[#be3144] hover:bg-gray-100 font-semibold text-base px-8 py-3 rounded-lg"
+            onClick={() => router.push(`/interview/${jobId}`)}
+          >
             Apply Now
           </Button>
         </section>

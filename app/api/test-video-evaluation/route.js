@@ -1,43 +1,44 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
+// Initialize Gemini client (OpenAI-compatible API)
 const client = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 // Scoring map for label categories
 const LABEL_SCORE_MAP = {
   // Degree-based
   'None': 0, 'Minimal': 1.7, 'Low': 3.3, 'Moderate': 5, 'Considerable': 6.7, 'High': 8.3, 'Extensive': 10,
-  
+
   // Quality-based
   'Very Poor': 0, 'Poor': 2, 'Below Average': 4, 'Average': 5, 'Above Average': 6, 'Strong': 7.5, 'Excellent': 9, 'Exceptional': 10,
-  
+
   // Binary
   'Not Detected': 0, 'Partially Detected': 3.3, 'Detected': 6.7, 'Clearly Evident': 10,
-  
+
   // Expression-based
   'Incoherent': 0, 'Confusing': 2, 'Verbose': 4, 'Wordy': 5, 'Adequately Expressed': 6, 'Clear': 8, 'Concise': 9, 'Highly Articulate': 10,
-  
+
   // Structure
   'Unstructured': 0, 'Poorly Structured': 2, 'Partially Structured': 4, 'Mostly Structured': 6, 'Logically Structured': 8, 'Well-Organized': 10,
-  
+
   // Relevance
   'Not Relevant': 0, 'Marginally Relevant': 1.7, 'Partially Relevant': 3.3, 'Generally Relevant': 5, 'Relevant': 6.7, 'Highly Relevant': 8.3, 'Directly Aligned': 10,
-  
+
   // Technical Accuracy
   'Incorrect': 0, 'Mostly Incorrect': 1.7, 'Partially Correct': 3.3, 'Generally Correct': 5, 'Mostly Correct': 6.7, 'Fully Correct': 8.3, 'Technically Precise': 10,
-  
+
   // Collaboration
   'Sole Contribution': 2, 'Minimal Collaboration': 4, 'Moderate Collaboration': 6, 'Effective Teamwork': 7.5, 'Highly Collaborative': 9, 'Seamless Integration': 10,
-  
+
   // Impact
   'No Impact': 0, 'Negligible Impact': 1.7, 'Low Impact': 3.3, 'Moderate Impact': 5, 'Strong Impact': 6.7, 'High Impact': 8.3, 'Transformational Impact': 10,
-  
+
   // Answer Length
   'Extremely Short': 1, 'Very Short': 2.5, 'Short': 5, 'Medium': 10, 'Detailed': 8, 'Long': 6, 'Very Long': 3, 'Excessively Long': 1,
-  
+
   // Answer Completeness
   'Not Complete': 0, 'Partially Complete': 3, 'Mostly Complete': 6, 'Complete': 8, 'Thoroughly Complete': 10,
 };
@@ -131,9 +132,9 @@ async function evaluate_answer(question, answer) {
     const prompt = get_test_evaluation_prompt(question, answer);
 
     try {
-      // Call the OpenAI API for evaluation
+      // Call the Gemini API for evaluation
       const response = await client.chat.completions.create({
-        model: "gpt-4",
+        model: "gemini-2.0-flash",
         messages: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: prompt }
@@ -202,7 +203,7 @@ async function evaluate_answer(question, answer) {
       };
 
     } catch (api_error) {
-      console.log(`[DEBUG] OpenAI API error: ${api_error.message}`);
+      console.log(`[DEBUG] Gemini API error: ${api_error.message}`);
       return {
         skipped: false,
         evaluation_score: 5,
@@ -258,12 +259,13 @@ export async function POST(req) {
       - "language": string (detected language)
       - "overallAssessment": string (brief overall assessment)`;
 
-    const openai = new OpenAI({
-      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    const gemini = new OpenAI({
+      apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
     });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await gemini.chat.completions.create({
+      model: "gemini-2.0-flash",
       messages: [
         { role: "system", content: "You are an expert interview evaluator." },
         { role: "user", content: feedbackPrompt }
@@ -273,7 +275,7 @@ export async function POST(req) {
 
     const feedbackContent = completion.choices[0].message.content;
     let feedback;
-    
+
     try {
       feedback = JSON.parse(feedbackContent.replace(/```json|```/g, '').trim());
     } catch (parseError) {

@@ -5,23 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Mic, StopCircle, RefreshCw, Save, Loader2, Languages, Shield, Eye, EyeOff, AlertTriangle, Monitor, Activity, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { chatSession } from '@/utils/OpenAIModel';
-import { db } from '@/utils/db';
-import { UserAnswer } from '@/utils/schema';
+import { saveUserAnswer } from '@/utils/devInterviewStore';
 import { useUser } from '@clerk/nextjs';
 import moment from 'moment';
 import { useReactMediaRecorder } from 'react-media-recorder';
 import { transcribeAudio } from '@/utils/OpenAIModel';
-import { eq, and } from 'drizzle-orm';
 import CheatingDetection from './CheatingDetection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert } from '@/components/ui/alert';
 
-function RecordAnswerSection({ 
-  mockInterviewQuestion, 
-  activeQuestionIndex, 
-  interviewData, 
+function RecordAnswerSection({
+  mockInterviewQuestion,
+  activeQuestionIndex,
+  interviewData,
   interviewType = 'technical',
   sessionId,
   userEmail,
@@ -51,7 +49,7 @@ function RecordAnswerSection({
   const [showCheatingDetection, setShowCheatingDetection] = useState(false);
   const [showCheatingDetails, setShowCheatingDetails] = useState(false);
   const [showLandmarks, setShowLandmarks] = useState(false);
-  
+
   const webcamRef = useRef(null);
   const { user } = useUser();
   const MIN_ANSWER_LENGTH = 10;
@@ -163,7 +161,7 @@ function RecordAnswerSection({
 
   const generateFeedback = async () => {
     if (!userAnswer.trim()) return null;
-    
+
     try {
       // Use the new video interview evaluation API
       const response = await fetch('/api/video-interview-evaluation', {
@@ -183,7 +181,7 @@ function RecordAnswerSection({
       }
 
       const evaluationResult = await response.json();
-      
+
       // Format the result for compatibility with existing UI
       return {
         rating: evaluationResult.evaluation_score || evaluationResult.traditional_feedback?.rating || 5,
@@ -194,7 +192,7 @@ function RecordAnswerSection({
         overallAssessment: evaluationResult.traditional_feedback?.overallAssessment || "Good response with room for improvement",
         // Add detailed evaluation data
         detailedEvaluation: evaluationResult.labels || {},
-        evaluationScore: (function() {
+        evaluationScore: (function () {
           const score = parseFloat(evaluationResult.evaluation_score);
           return isNaN(score) ? 5.0 : score;
         })(),
@@ -212,7 +210,7 @@ function RecordAnswerSection({
 
   const generateFollowUpAnalysis = async () => {
     if (!userAnswer.trim()) return null;
-    
+
     try {
       const followUpPrompt = `Act like an expert interview coach analyzing:
         Question: ${mockInterviewQuestion[activeQuestionIndex]?.question}
@@ -297,7 +295,8 @@ function RecordAnswerSection({
         language: feedbackResult?.language || 'en'
       };
 
-      await db.insert(UserAnswer).values(answerData);
+      // Save answer to localStorage (dev mode)
+      saveUserAnswer(answerData);
 
       // Reload answers
       if (onAnswerSubmitted) {
@@ -357,34 +356,34 @@ function RecordAnswerSection({
 
   const drawLandmarks = useCallback((landmarks, videoElement) => {
     if (!landmarkCanvasRef.current || !showLandmarks) return;
-    
+
     const canvas = landmarkCanvasRef.current;
     const ctx = canvas.getContext('2d');
-    
+
     // Get the video's display size
     const videoRect = videoElement.getBoundingClientRect();
     canvas.width = videoRect.width;
     canvas.height = videoRect.height;
-    
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (!landmarks) return;
-    
+
     // Calculate scale factors
     const scaleX = canvas.width / videoElement.videoWidth;
     const scaleY = canvas.height / videoElement.videoHeight;
-    
+
     // Helper functions
     const scaleXCoord = (x) => x * scaleX;
     const scaleYCoord = (y) => y * scaleY;
-    
+
     // Draw all 68 landmarks
     const points = landmarks.positions;
-    
+
     // Draw different landmark groups with different colors
     ctx.lineWidth = 2;
-    
+
     // Jaw line (points 0-16)
     ctx.strokeStyle = '#FF6B6B';
     ctx.fillStyle = '#FF6B6B';
@@ -396,7 +395,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 0) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -405,7 +404,7 @@ function RecordAnswerSection({
         ctx.stroke();
       }
     }
-    
+
     // Right eyebrow (points 17-21)
     ctx.strokeStyle = '#4ECDC4';
     ctx.fillStyle = '#4ECDC4';
@@ -417,7 +416,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 17) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -426,7 +425,7 @@ function RecordAnswerSection({
         ctx.stroke();
       }
     }
-    
+
     // Left eyebrow (points 22-26)
     for (let i = 22; i < 27; i++) {
       const point = points[i];
@@ -436,7 +435,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 22) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -445,7 +444,7 @@ function RecordAnswerSection({
         ctx.stroke();
       }
     }
-    
+
     // Nose (points 27-35)
     ctx.strokeStyle = '#45B7D1';
     ctx.fillStyle = '#45B7D1';
@@ -457,7 +456,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 27) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -466,7 +465,7 @@ function RecordAnswerSection({
         ctx.stroke();
       }
     }
-    
+
     // Right eye (points 36-41)
     ctx.strokeStyle = '#96CEB4';
     ctx.fillStyle = '#96CEB4';
@@ -478,7 +477,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 36) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -494,7 +493,7 @@ function RecordAnswerSection({
     ctx.moveTo(scaleXCoord(lastEyePoint.x), scaleYCoord(lastEyePoint.y));
     ctx.lineTo(scaleXCoord(firstEyePoint.x), scaleYCoord(firstEyePoint.y));
     ctx.stroke();
-    
+
     // Left eye (points 42-47)
     for (let i = 42; i < 48; i++) {
       const point = points[i];
@@ -504,7 +503,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 42) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -520,7 +519,7 @@ function RecordAnswerSection({
     ctx.moveTo(scaleXCoord(lastLeftEyePoint.x), scaleYCoord(lastLeftEyePoint.y));
     ctx.lineTo(scaleXCoord(firstLeftEyePoint.x), scaleYCoord(firstLeftEyePoint.y));
     ctx.stroke();
-    
+
     // Mouth (points 48-67)
     ctx.strokeStyle = '#FFEAA7';
     ctx.fillStyle = '#FFEAA7';
@@ -532,7 +531,7 @@ function RecordAnswerSection({
       ctx.arc(scaledX, scaledY, 3, 0, 2 * Math.PI);
       ctx.fill();
       if (i > 48) {
-        const prevPoint = points[i-1];
+        const prevPoint = points[i - 1];
         const prevScaledX = scaleXCoord(prevPoint.x);
         const prevScaledY = scaleYCoord(prevPoint.y);
         ctx.beginPath();
@@ -541,12 +540,12 @@ function RecordAnswerSection({
         ctx.stroke();
       }
     }
-    
+
     // Draw eye centers and gaze direction
     if (landmarks.getLeftEye && landmarks.getRightEye) {
       const leftEye = landmarks.getLeftEye();
       const rightEye = landmarks.getRightEye();
-      
+
       // Calculate eye centers
       const leftEyeCenter = leftEye.reduce((acc, point) => ({
         x: acc.x + point.x,
@@ -554,14 +553,14 @@ function RecordAnswerSection({
       }), { x: 0, y: 0 });
       leftEyeCenter.x /= leftEye.length;
       leftEyeCenter.y /= leftEye.length;
-      
+
       const rightEyeCenter = rightEye.reduce((acc, point) => ({
         x: acc.x + point.x,
         y: acc.y + point.y
       }), { x: 0, y: 0 });
       rightEyeCenter.x /= rightEye.length;
       rightEyeCenter.y /= rightEye.length;
-      
+
       // Draw eye centers (scaled)
       ctx.fillStyle = '#FF0000';
       ctx.beginPath();
@@ -570,14 +569,14 @@ function RecordAnswerSection({
       ctx.beginPath();
       ctx.arc(scaleXCoord(rightEyeCenter.x), scaleYCoord(rightEyeCenter.y), 5, 0, 2 * Math.PI);
       ctx.fill();
-      
+
       // Draw gaze direction line (scaled)
       const eyeCenter = {
         x: (leftEyeCenter.x + rightEyeCenter.x) / 2,
         y: (leftEyeCenter.y + rightEyeCenter.y) / 2
       };
       const videoCenter = { x: canvas.width / 2, y: canvas.height / 2 };
-      
+
       // Calculate gaze direction and distance
       const gazeVector = {
         x: eyeCenter.x - videoCenter.x,
@@ -588,11 +587,11 @@ function RecordAnswerSection({
         x: gazeVector.x / gazeDistance,
         y: gazeVector.y / gazeDistance
       };
-      
+
       // Draw gaze direction with color based on distance
       const maxDistance = Math.min(canvas.width, canvas.height) * 0.4;
       const gazeIntensity = Math.min(1.0, gazeDistance / maxDistance);
-      
+
       // Color based on gaze intensity (green = looking at center, red = looking away)
       const red = Math.floor(255 * gazeIntensity);
       const green = Math.floor(255 * (1 - gazeIntensity));
@@ -602,14 +601,14 @@ function RecordAnswerSection({
       ctx.moveTo(scaleXCoord(eyeCenter.x), scaleYCoord(eyeCenter.y));
       ctx.lineTo(videoCenter.x, videoCenter.y);
       ctx.stroke();
-      
+
       // Draw center target with size based on gaze accuracy
       const targetSize = 8 + (gazeIntensity * 4);
       ctx.fillStyle = `rgb(${green}, ${red}, 0)`;
       ctx.beginPath();
       ctx.arc(videoCenter.x, videoCenter.y, targetSize, 0, 2 * Math.PI);
       ctx.fill();
-      
+
       // Draw gaze zone indicator
       const zone = calculateGazeZone(eyeCenter, videoElement);
       ctx.fillStyle = '#0000FF';
@@ -617,11 +616,11 @@ function RecordAnswerSection({
       ctx.fillText(`Zone: ${zone}`, 10, 20);
       ctx.fillText(`Distance: ${Math.round(gazeDistance)}`, 10, 40);
       ctx.fillText(`Intensity: ${Math.round(gazeIntensity * 100)}%`, 10, 60);
-      
+
       // Draw device detection landmarks if available
       if (landmarks.deviceDetection) {
         const deviceData = landmarks.deviceDetection;
-        
+
         // Draw bright areas (yellow dots)
         ctx.fillStyle = '#FFFF00';
         ctx.globalAlpha = 0.6;
@@ -632,7 +631,7 @@ function RecordAnswerSection({
           ctx.arc(scaledX, scaledY, 2, 0, 2 * Math.PI);
           ctx.fill();
         }
-        
+
         // Draw blue areas (blue dots)
         ctx.fillStyle = '#0080FF';
         for (const area of deviceData.blueAreas) {
@@ -642,7 +641,7 @@ function RecordAnswerSection({
           ctx.arc(scaledX, scaledY, 2, 0, 2 * Math.PI);
           ctx.fill();
         }
-        
+
         // Draw white areas (white dots)
         ctx.fillStyle = '#FFFFFF';
         for (const area of deviceData.whiteAreas) {
@@ -652,7 +651,7 @@ function RecordAnswerSection({
           ctx.arc(scaledX, scaledY, 2, 0, 2 * Math.PI);
           ctx.fill();
         }
-        
+
         // Draw edge points (red dots)
         ctx.fillStyle = '#FF0000';
         for (const point of deviceData.edgePoints) {
@@ -662,7 +661,7 @@ function RecordAnswerSection({
           ctx.arc(scaledX, scaledY, 1, 0, 2 * Math.PI);
           ctx.fill();
         }
-        
+
         // Draw detected device clusters (circles)
         ctx.strokeStyle = '#FF00FF';
         ctx.lineWidth = 3;
@@ -671,56 +670,56 @@ function RecordAnswerSection({
           const scaledX = scaleXCoord(cluster.center.x);
           const scaledY = scaleYCoord(cluster.center.y);
           const radius = Math.min(20, cluster.size / 2);
-          
+
           ctx.beginPath();
           ctx.arc(scaledX, scaledY, radius, 0, 2 * Math.PI);
           ctx.stroke();
-          
+
           // Draw cluster info
           ctx.fillStyle = '#FF00FF';
           ctx.font = '12px Arial';
           const typesText = cluster.types && Array.isArray(cluster.types) ? cluster.types.join(',') : 'unknown';
           ctx.fillText(typesText, scaledX + radius + 5, scaledY);
         }
-        
+
         // Reset alpha
         ctx.globalAlpha = 1.0;
-        
+
         // Draw YOLO detection boxes if available
         if (landmarks.yoloDetections && landmarks.yoloDetections.length > 0) {
           ctx.strokeStyle = '#FF0000';
           ctx.lineWidth = 3;
           ctx.globalAlpha = 0.8;
-          
+
           for (const detection of landmarks.yoloDetections) {
             const [x1, y1, x2, y2] = detection.bbox;
             const scaledX1 = scaleXCoord(x1);
             const scaledY1 = scaleYCoord(y1);
             const scaledX2 = scaleXCoord(x2);
             const scaledY2 = scaleYCoord(y2);
-            
+
             // Draw bounding box
             ctx.strokeRect(scaledX1, scaledY1, scaledX2 - scaledX1, scaledY2 - scaledY1);
-            
+
             // Draw confidence label
             ctx.fillStyle = '#FF0000';
             ctx.font = '12px Arial';
             ctx.fillText(`${Math.round(detection.confidence * 100)}%`, scaledX1, scaledY1 - 5);
-            
+
             // Draw device type label
             ctx.fillText(`Mobile Device`, scaledX1, scaledY2 + 15);
           }
-          
+
           ctx.globalAlpha = 1.0;
         }
-        
+
         // Draw device detection info
         if (landmarks.deviceDetected) {
           ctx.fillStyle = '#FF0000';
           ctx.font = '16px Arial';
           ctx.fillText(`DEVICE DETECTED: ${landmarks.deviceType || 'unknown'}`, 10, 80);
           ctx.fillText(`Confidence: ${Math.round(landmarks.deviceConfidence * 100)}%`, 10, 100);
-          
+
           // Show YOLO-only mode
           if (landmarks.yoloOnly) {
             ctx.fillText(`YOLO-ONLY MODE`, 10, 120);
@@ -737,10 +736,10 @@ function RecordAnswerSection({
     const centerX = videoElement.videoWidth / 2;
     const centerY = videoElement.videoHeight / 2;
     const threshold = Math.min(videoElement.videoWidth, videoElement.videoHeight) * 0.2;
-    
+
     const dx = eyeCenter.x - centerX;
     const dy = eyeCenter.y - centerY;
-    
+
     if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
       return 'center';
     } else if (Math.abs(dx) > Math.abs(dy)) {
@@ -864,7 +863,7 @@ function RecordAnswerSection({
                   </CardDescription>
                 </div>
               </div>
-              
+
               {/* Cheating Detection Toggle */}
               <div className="flex items-center gap-2">
                 <Tooltip>
@@ -883,7 +882,7 @@ function RecordAnswerSection({
                     <p>{showCheatingDetails ? 'Hide cheating detection details' : 'Show cheating detection details'}</p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -900,7 +899,7 @@ function RecordAnswerSection({
                     <p>{showLandmarks ? 'Hide facial landmarks' : 'Show facial landmarks'}</p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -920,7 +919,7 @@ function RecordAnswerSection({
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-2">
             {/* Webcam */}
             <div className="relative w-full max-w-md mx-auto">
@@ -934,27 +933,26 @@ function RecordAnswerSection({
                   facingMode: "user"
                 }}
               />
-              
+
               {/* Recording Indicator */}
               {isRecording && (
                 <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium animate-pulse">
                   REC
                 </div>
               )}
-              
+
               {/* Risk Level Indicator */}
               {cheatingRisk > 0 && (
-                <div className={`absolute top-4 left-4 px-2 py-1 rounded-full text-xs font-medium text-white ${
-                  cheatingRisk < 30 ? 'bg-green-500' :
+                <div className={`absolute top-4 left-4 px-2 py-1 rounded-full text-xs font-medium text-white ${cheatingRisk < 30 ? 'bg-green-500' :
                   cheatingRisk < 70 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}>
+                  }`}>
                   Risk: {Math.round(cheatingRisk)}%
                 </div>
               )}
-              
+
               {/* Landmark Overlay */}
-              <canvas 
-                ref={landmarkCanvasRef} 
+              <canvas
+                ref={landmarkCanvasRef}
                 className="absolute inset-0 w-full h-full pointer-events-none z-10 rounded-lg"
               />
             </div>
@@ -969,7 +967,7 @@ function RecordAnswerSection({
                 <span className="text-gray-600">Alerts: {cheatingAlerts.length}</span>
               </div>
             </div>
-            
+
             {/* Cheating Detection (always running, details toggled) */}
             <CheatingDetection
               webcamRef={webcamRef}
@@ -995,7 +993,7 @@ function RecordAnswerSection({
               ref={cheatingDetectionRef}
               showDetails={showCheatingDetails}
             />
-            
+
             {/* Quick Risk Indicator */}
             {!showCheatingDetails && cheatingRisk > 0 && (
               <Alert className="border-orange-200 bg-orange-50">

@@ -1,8 +1,5 @@
 "use client"
 import { Button } from '@/components/ui/button';
-import { db } from '@/utils/db';
-import { MockInterview } from '@/utils/schema'
-import { eq } from 'drizzle-orm';
 import { Lightbulb, WebcamIcon, Loader2, Briefcase, Info, User, FileText, Video } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
@@ -41,20 +38,28 @@ function Interview({ params }) {
     };
 
     /**
-     * Used to Get Interview Details by MockId/Interview Id
+     * Used to Get Interview Details by Interview Id (no database in dev).
+     * We reuse the job data stored in localStorage ('devJobs') and treat the interviewId as the jobId.
      */
     const GetInterviewDetails = async () => {
         try {
             setLoading(true);
-            const result = await db.select()
-                .from(MockInterview)
-                .where(eq(MockInterview.mockId, interviewId));
-            
-            if (result.length === 0) {
-                throw new Error('Interview not found');
+            if (typeof window === "undefined") {
+                setInterviewData(null);
+                return;
             }
-            
-            setInterviewData(result[0]);
+
+            const raw = window.localStorage.getItem("devJobs");
+            const jobs = raw ? JSON.parse(raw) : [];
+            const found = Array.isArray(jobs)
+                ? jobs.find(j => String(j.id) === String(interviewId))
+                : null;
+
+            if (!found) {
+                throw new Error("Interview not found");
+            }
+
+            setInterviewData(found);
         } catch (err) {
             console.error(err);
             setError(err.message);

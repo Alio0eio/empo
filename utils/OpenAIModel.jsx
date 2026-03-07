@@ -1,8 +1,16 @@
-import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+// ── Gemini client (OpenAI-compatible API) for chat completions ──
+const gemini = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  dangerouslyAllowBrowser: true,
+});
+
+// ── Groq client (OpenAI-compatible API) for audio transcription ──
+const groq = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
   dangerouslyAllowBrowser: true,
 });
 
@@ -15,7 +23,7 @@ export async function chatSession(prompt, interviewType, jobPosition = "", caree
       role: "system",
       content: `Act as a highly experienced senior hiring manager, organizational psychologist, 
       and behavioral strategist with 20+ years in evaluating talent across industries.
-      Your expertise lies in uncovering a candidate’s mindset, emotional intelligence, interpersonal strengths,
+      Your expertise lies in uncovering a candidate's mindset, emotional intelligence, interpersonal strengths,
       leadership potential, and cultural adaptability — without relying on technical questions.
 
       You are responsible for designing a *deeply personalized, non-repetitive, and behavior-focused interview* that analyzes how the candidate:
@@ -33,7 +41,8 @@ export async function chatSession(prompt, interviewType, jobPosition = "", caree
       *Do not* ask technical or skill-assessment questions — your goal is to understand the human behind the resume.
 
       The interview must feel insightful, structured, and tailored — just as a world-class behavioral panel would conduct.
-`
+      
+      CRITICAL: Respond with ONLY valid JSON array. NO markdown code blocks, NO extra text, NO explanations.`
     };
   } else if (interviewType === 'technical') {
     systemMessage = {
@@ -41,14 +50,17 @@ export async function chatSession(prompt, interviewType, jobPosition = "", caree
       content: `You are an advanced AI interviewer with deep expertise across ${jobPosition}. 
         You dynamically adapt your knowledge to match the specific job title, responsibilities, and required skills.
         For each interview, you generate insightful, industry-relevant, and challenging questions tailored to the job position.
-        also generate questions based on the candidate’s career level: ${careerLevel} and based on their Experience: ${jobExperience} and customize your questions accordingly.
+        also generate questions based on the candidate's career level: ${careerLevel} and based on their Experience: ${jobExperience} and customize your questions accordingly.
         Ensure the questions reflect real-world scenarios, best practices, and the latest industry standards.
-      `
+        
+        CRITICAL: Respond with ONLY valid JSON array. NO markdown code blocks, NO extra text, NO explanations.`
     };
   }
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const response = await gemini.chat.completions.create({
+    model: "gemini-2.0-flash",
+    temperature: 0.7,
+    top_p: 0.9,
     messages: [
       systemMessage,
       {
@@ -69,7 +81,7 @@ export async function transcribeAudio(audioBlob, languageMode = 'auto') {
 
     const params = {
       file: audioFile,
-      model: 'whisper-1',
+      model: 'whisper-large-v3',
       response_format: 'json',
       prompt: 'This is a multilingual conversation. Transcribe exactly what you hear in the original language(s) without translation. Maintain code-switching between languages as spoken.'
     };
@@ -79,8 +91,8 @@ export async function transcribeAudio(audioBlob, languageMode = 'auto') {
       params.language = languageMode;
     }
 
-    const transcription = await openai.audio.transcriptions.create(params);
-    
+    const transcription = await groq.audio.transcriptions.create(params);
+
     return {
       text: transcription.text,
       detectedLanguage: transcription.language || languageMode
@@ -96,7 +108,7 @@ export async function generateAudioFeedback(audioBlob, question, interviewType) 
   try {
     // First transcribe the audio
     const transcription = await transcribeAudio(audioBlob);
-    
+
     // Then generate feedback using chatSession
     const feedbackPrompt = `
       Analyze this interview response:
@@ -120,4 +132,3 @@ export async function generateAudioFeedback(audioBlob, question, interviewType) 
     throw error;
   }
 }
-

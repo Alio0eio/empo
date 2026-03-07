@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { chatSession } from "@/utils/OpenAIModel";
 import { LoaderCircle, Video, ArrowRight } from "lucide-react";
-import { MockInterview } from "@/utils/schema";
 import { v4 as uuidv4 } from "uuid";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
-import { db } from "@/utils/db";
+import { saveMockInterview } from "@/utils/devInterviewStore";
 import { useRouter } from "next/navigation";
 import {
   Select,
@@ -23,67 +22,67 @@ import { toast } from 'sonner';
 
 export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsId }) {
   if (!open) return null;
-    const [interviewType, setInterviewType] = useState(""); // Initially empty, user selects one
-    const [jobPosition, setJobPosition] = useState("");
-    const [jobDesc, setJobDesc] = useState("");
-    const [jobRes, setJobRes] = useState("");
-    const [jobReq, setJobReq] = useState("");
-    const [perfSkills, setPerfSkills] = useState("");
-    const [careerLevel, setCareerLevel] = useState("");
-    const [jobExperience, setJobExperience] = useState("");
-    const [skills, setSkills] = useState("");
-    const [education, setEducation] = useState("");
-    const [achievements, setAchievements] = useState("");
-    const [projects, setProjects] = useState("");
-    const [jsonResponse, setJsonResponse] = useState(null)
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
-    const { user } = useUser();
+  const [interviewType, setInterviewType] = useState(""); // Initially empty, user selects one
+  const [jobPosition, setJobPosition] = useState("");
+  const [jobDesc, setJobDesc] = useState("");
+  const [jobRes, setJobRes] = useState("");
+  const [jobReq, setJobReq] = useState("");
+  const [perfSkills, setPerfSkills] = useState("");
+  const [careerLevel, setCareerLevel] = useState("");
+  const [jobExperience, setJobExperience] = useState("");
+  const [skills, setSkills] = useState("");
+  const [education, setEducation] = useState("");
+  const [achievements, setAchievements] = useState("");
+  const [projects, setProjects] = useState("");
+  const [jsonResponse, setJsonResponse] = useState(null)
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { user } = useUser();
   const [category, setCategory] = useState("");
   const [categoryError, setCategoryError] = useState("");
 
-    const resetForm = () => {
-        setInterviewType("");
-        setJobPosition("");
-        setJobDesc("");
-        setJobRes("");
-        setJobReq("");
-        setPerfSkills("");
-        setCareerLevel("");
-        setJobExperience("");
-        setSkills("");
-        setEducation("");
-        setAchievements("");
-        setProjects("");
-        setJsonResponse(null);
+  const resetForm = () => {
+    setInterviewType("");
+    setJobPosition("");
+    setJobDesc("");
+    setJobRes("");
+    setJobReq("");
+    setPerfSkills("");
+    setCareerLevel("");
+    setJobExperience("");
+    setSkills("");
+    setEducation("");
+    setAchievements("");
+    setProjects("");
+    setJsonResponse(null);
     setCategory("");
     setCategoryError("");
-    };
+  };
 
-    // Optionally pre-fill fields from jobDetails
-    useEffect(() => {
-        if (jobDetails) {
-            if (jobDetails.jobTitle) setJobPosition(jobDetails.jobTitle);
-            if (jobDetails.careerLevel) setCareerLevel(jobDetails.careerLevel);
-            if (jobDetails.jobDescription) setJobDesc(jobDetails.jobDescription);
-            if (jobDetails.skills) setSkills(jobDetails.skills);
-            if (jobDetails.education) setEducation(jobDetails.education);
-            // ...add more pre-fills as needed
-        }
-    }, [jobDetails]);
+  // Optionally pre-fill fields from jobDetails
+  useEffect(() => {
+    if (jobDetails) {
+      if (jobDetails.jobTitle) setJobPosition(jobDetails.jobTitle);
+      if (jobDetails.careerLevel) setCareerLevel(jobDetails.careerLevel);
+      if (jobDetails.jobDescription) setJobDesc(jobDetails.jobDescription);
+      if (jobDetails.skills) setSkills(jobDetails.skills);
+      if (jobDetails.education) setEducation(jobDetails.education);
+      // ...add more pre-fills as needed
+    }
+  }, [jobDetails]);
 
-    const onSubmit = async (e) => {
-        e.preventDefault();
+  const onSubmit = async (e) => {
+    e.preventDefault();
     setCategoryError("");
     if (!category) {
       setCategoryError("Please select a job category.");
       return;
     }
-        setLoading(true);
-        let prompt = "";
+    setLoading(true);
+    let prompt = "";
 
-        if (interviewType === "technical") {
-        prompt = 
+    if (interviewType === "technical") {
+      prompt =
         `Job Details:
         - Job Position: ${jobPosition}
         - Job Description: ${jobDesc}
@@ -141,18 +140,32 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
 
         ---
         
-        ### JSON Output Format:
-        \\\`json
+        ### JSON Output Format (IMPORTANT - RESPOND ONLY WITH VALID JSON, NO MARKDOWN):
+        
+        You MUST respond with ONLY a valid JSON array. No markdown code blocks, no extra text.
+        
         [
           { 
-            "question": "text",
-            "answer": "",
+            "question": "What is your experience with...",
+            "type": "Technical",
+            "answer": ""
           },
+          { 
+            "question": "Tell me about a time when...",
+            "type": "Behavioral",
+            "answer": ""
+          }
         ]
-        \\\`
+        
+        Important:
+        - Return ONLY the JSON array, nothing else
+        - Do NOT include markdown code blocks (```json or ```)
+        - Do NOT include any text before or after the JSON
+        - Each question must have: question, type, and answer fields
+        - Type must be one of: Technical, Behavioral, Experience, Problem Solving, Leadership
         `
-        } else if (interviewType === "behavioral") {
-        prompt = 
+    } else if (interviewType === "behavioral") {
+      prompt =
         `
         Candidate Information:
             Skills: ${skills},  
@@ -220,78 +233,130 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
 
         ---
 
-        ### JSON Output Format:
-            \\\`json
-            [
-              { 
-                "question": "text",
-                "answer": "",
-              },
-            ]
-            \\\`
+        ### JSON Output Format (IMPORTANT - RESPOND ONLY WITH VALID JSON, NO MARKDOWN):
+        
+        You MUST respond with ONLY a valid JSON array. No markdown code blocks, no extra text.
+        
+        [
+          { 
+            "question": "Tell me about yourself and your background.",
+            "type": "Behavioral",
+            "answer": ""
+          },
+          { 
+            "question": "What motivates you to perform well?",
+            "type": "Motivation",
+            "answer": ""
+          }
+        ]
+        
+        Important:
+        - Return ONLY the JSON array, nothing else
+        - Do NOT include markdown code blocks (```json or ```)
+        - Do NOT include any text before or after the JSON
+        - Each question must have: question, type, and answer fields
+        - Ensure exactly 20-22 questions total
         `;
-        }
+    }
 
     try {
-        const aiResponse = await chatSession(
-            prompt,
-            interviewType,
-            jobPosition,
-            careerLevel,
-            jobExperience
-          );
+      const aiResponse = await chatSession(
+        prompt,
+        interviewType,
+        jobPosition,
+        careerLevel,
+        jobExperience
+      );
 
-        if (!aiResponse) throw new Error("Failed to get AI response.");
+      if (!aiResponse) throw new Error("Failed to get AI response.");
 
-        const mockJsonResp = aiResponse
-            .replace("```json", "")
-            .replace("```", "")
-            .trim();
+      const mockJsonResp = aiResponse
+        .replace("```json", "")
+        .replace("```", "")
+        .trim();
 
-        console.log("AI Response:", mockJsonResp);
-        setJsonResponse(mockJsonResp);
+      console.log("AI Response:", mockJsonResp);
+      
+      // Parse and validate JSON response
+      let parsedData;
+      try {
+        parsedData = JSON.parse(mockJsonResp);
+        console.log("Parsed data:", parsedData);
         
-        // Debug log for jobDetailsId
-        console.log('Saving interview with jobDetailsId:', jobDetailsId);
-        // Exclude id from jobDetails to avoid overwriting jobDetailsId
-        const { id, ...restJobDetails } = jobDetails || {};
-        const interviewData = {
-          mockId: uuidv4(),
-          jsonMockResp: mockJsonResp,
-          jobPosition,
-          jobDesc,
-          jobRes,
-          jobReq,
-          perfSkills,
-          careerLevel,
-          jobExperience,
-          skills,
-          education,
-          achievements,
-          projects,
-          createdBy: user?.primaryEmailAddress?.emailAddress,
-          createdAt: moment().format("DD-MM-YYYY"),
-          interviewType,
-          category,
-          ...restJobDetails,
-          jobDetailsId,
-        };
-        // Debug log for interviewData
-        console.log('Interview data to save:', interviewData);
-        const resp = await db
-            .insert(MockInterview)
-            .values(interviewData)
-            .returning({ mockId: MockInterview.mockId });
+        // Handle both array format and object format with interviewQuestions
+        let questionsArray;
+        if (Array.isArray(parsedData)) {
+          questionsArray = parsedData;
+        } else if (parsedData.interviewQuestions && Array.isArray(parsedData.interviewQuestions)) {
+          questionsArray = parsedData.interviewQuestions;
+        } else {
+          throw new Error('Invalid response format: expected array or object with interviewQuestions property');
+        }
+        
+        if (!questionsArray || questionsArray.length === 0) {
+          throw new Error('No questions were generated');
+        }
+        
+        // Ensure each question has required fields
+        questionsArray.forEach((q, idx) => {
+          if (!q.question || typeof q.question !== 'string') {
+            throw new Error(`Question ${idx + 1} missing or invalid question text`);
+          }
+          // Ensure answer field exists
+          if (!('answer' in q)) {
+            q.answer = '';
+          }
+        });
+        
+        console.log("Validated questions:", questionsArray);
+      } catch (parseError) {
+        console.error("JSON Parse Error:", parseError);
+        toast.error("Failed to generate valid questions: " + parseError.message);
+        setLoading(false);
+        return;
+      }
+      
+      setJsonResponse(mockJsonResp);
 
-      if (resp.length > 0) {
+      // Debug log for jobDetailsId
+      console.log('Saving interview with jobDetailsId:', jobDetailsId);
+      // Exclude id from jobDetails to avoid overwriting jobDetailsId
+      const { id, ...restJobDetails } = jobDetails || {};
+      const interviewData = {
+        mockId: uuidv4(),
+        jsonMockResp: mockJsonResp,
+        jobPosition,
+        jobDesc,
+        jobRes,
+        jobReq,
+        perfSkills,
+        careerLevel,
+        jobExperience,
+        skills,
+        education,
+        achievements,
+        projects,
+        createdBy: user?.primaryEmailAddress?.emailAddress,
+        createdAt: moment().format("DD-MM-YYYY"),
+        interviewType,
+        category,
+        ...restJobDetails,
+        jobDetailsId,
+      };
+      // Debug log for interviewData
+      console.log('Interview data to save:', interviewData);
+      // Save to localStorage (dev mode)
+      const saved = saveMockInterview(interviewData);
+
+      if (saved) {
         resetForm();
         setOpen(false);
-        router.push(`/dashboard/interview-success?mockId=${resp[0]?.mockId}&jobPosition=${encodeURIComponent(jobPosition)}&interviewType=${interviewType}`);
+        router.push(`/dashboard/interview-success?mockId=${saved.mockId}&jobPosition=${encodeURIComponent(jobPosition)}&interviewType=${interviewType}`);
       }
     } catch (error) {
       console.error("Error generating questions:", error);
       toast.error("Failed to generate interview questions");
-        } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -306,7 +371,7 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Create Mock Interview</h2>
         <p className="text-gray-500">Fill in the details to generate customized mock interview questions</p>
-          </div>
+      </div>
       <form className="space-y-8" onSubmit={onSubmit}>
         {/* Interview Type */}
         <div className="space-y-1">
@@ -332,7 +397,7 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
               required
             />
             <p className="text-xs text-gray-400 mt-1">Enter the job title you're hiring for</p>
-        </div>
+          </div>
         )}
         {/* Job Description */}
         {interviewType && (
@@ -345,7 +410,7 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
               required
             />
             <p className="text-xs text-gray-400 mt-1">Detailed descriptions yield better question recommendations</p>
-      </div>
+          </div>
         )}
         {/* Job Category */}
         {interviewType && (
@@ -392,11 +457,11 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
             </Select>
             <p className="text-xs text-gray-400 mt-1">Choose the job category for filtering</p>
             {categoryError && <p className="text-xs text-red-500 mt-1">{categoryError}</p>}
-                  </div>
-                )}
+          </div>
+        )}
         {/* Technical Fields */}
         {interviewType === 'technical' && (
-                  <>
+          <>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Job Responsibilities</label>
               <Textarea
@@ -405,16 +470,16 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
                 onChange={(event) => setJobRes(event.target.value)}
                 required
               />
-                    </div>
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Job Requirements</label>
-                        <Textarea 
+              <Textarea
                 placeholder="Ex.🔹 Skills: {Key technical & soft skills} "
                 className="h-[80px] mt-1 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(event) => setJobReq(event.target.value)}
-                            required
-                        />
-                    </div>
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Preferred Skills (Not Mandatory)</label>
               <Input
@@ -423,7 +488,7 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
                 onChange={(event) => setPerfSkills(event.target.value)}
                 required
               />
-                    </div>
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Career Level</label>
               <Input
@@ -432,7 +497,7 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
                 onChange={(event) => setCareerLevel(event.target.value)}
                 required
               />
-                    </div>
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Experience Needed</label>
               <Input
@@ -441,89 +506,89 @@ export default function AddNewInterview({ open, setOpen, jobDetails, jobDetailsI
                 onChange={(event) => setJobExperience(event.target.value)}
                 required
               />
-                    </div>
-                  </>
-                )}
+            </div>
+          </>
+        )}
         {/* Behavioral Fields */}
         {interviewType === 'behavioral' && (
-                  <>
+          <>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Skills</label>
-                                <Textarea
-                                placeholder="e.g., React, Node.js, Leadership, Problem-solving"
+              <Textarea
+                placeholder="e.g., React, Node.js, Leadership, Problem-solving"
                 className="h-[80px] mt-1 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(e) => setSkills(e.target.value)}
-                                required
-                                />
-                            </div>
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Education</label>
-                                <Textarea
-                                placeholder="e.g., BSc in Computer Science, MBA..."
+              <Textarea
+                placeholder="e.g., BSc in Computer Science, MBA..."
                 className="h-[80px] mt-1 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(e) => setEducation(e.target.value)}
-                                required
-                                />
-                            </div>
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Achievements</label>
-                                <Textarea
-                                placeholder="e.g., Hackathon winner, Published research..."
+              <Textarea
+                placeholder="e.g., Hackathon winner, Published research..."
                 className="h-[80px] mt-1 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(e) => setAchievements(e.target.value)}
-                                required
-                                />
-                            </div>
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Projects</label>
-                                <Textarea
-                                placeholder="e.g., E-commerce website, AI chatbot..."
+              <Textarea
+                placeholder="e.g., E-commerce website, AI chatbot..."
                 className="h-[80px] mt-1 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(e) => setProjects(e.target.value)}
-                                required
-                                />
-                            </div>
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Experience Needed</label>
-                                <Input
-                                placeholder="Ex. 5"
-                                max="100"
-                                type="number"
+              <Input
+                placeholder="Ex. 5"
+                max="100"
+                type="number"
                 className="mt-1 h-12 text-base border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50 transition-colors"
                 onChange={(event) => setJobExperience(event.target.value)}
-                                required
-                                />
-                            </div>
-                  </>
-                )}
+                required
+              />
+            </div>
+          </>
+        )}
         {/* Submit Button */}
         <div className="pt-6 flex justify-between border-t border-gray-100">
-                  <Button
-                    type="button"
+          <Button
+            type="button"
             variant="outline"
             onClick={() => setOpen(false)}
             className="h-12 px-8 text-base font-medium mr-4"
-                  >
-                    Cancel
-                  </Button>
+          >
+            Cancel
+          </Button>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               type="submit"
               disabled={loading}
               className="h-12 px-8 text-base font-medium bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md transition-all"
             >
-                    {loading ? (
+              {loading ? (
                 'Generating...'
               ) : (
-                      <>
+                <>
                   Generate Questions
                   <ArrowRight className="ml-2 h-5 w-5" />
-                      </>
-                    )}
-                  </Button>
+                </>
+              )}
+            </Button>
           </motion.div>
-                </div>
-              </form>
+        </div>
+      </form>
     </motion.div>
   );
 }

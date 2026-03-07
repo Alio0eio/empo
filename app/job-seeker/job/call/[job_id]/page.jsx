@@ -1,9 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { db } from '@/utils/db';
-import { callInterview } from '@/utils/schema';
-import { eq } from 'drizzle-orm';
+import { getCallInterview } from '@/utils/devInterviewStore';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 
@@ -21,15 +19,9 @@ export default function CallJobDetailsPage() {
 
   const fetchJob = async () => {
     try {
-      const result = await db.select().from(callInterview).where(eq(callInterview.job_id, job_id));
-      const interview = result[0] || null;
+      // Read from localStorage (dev mode)
+      const interview = getCallInterview(job_id);
       setJob(interview);
-      // Fetch job details if jobDetailsId exists
-      if (interview?.jobDetailsId) {
-        const res = await fetch(`/api/job-details/${interview.jobDetailsId}`);
-        const details = await res.json();
-        setJobDetails(details);
-      }
     } catch (error) {
       setJob(null);
       setJobDetails(null);
