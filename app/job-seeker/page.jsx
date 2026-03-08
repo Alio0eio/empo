@@ -89,7 +89,9 @@ export default function JobSeekerPage() {
       if (typeof window !== 'undefined') {
         const raw = window.localStorage.getItem('devJobs');
         const jobs = raw ? JSON.parse(raw) : [];
-        setAllJobs(Array.isArray(jobs) ? jobs : []);
+        // Filter out deleted jobs
+        const activeJobs = Array.isArray(jobs) ? jobs.filter(job => !job.deleted) : [];
+        setAllJobs(activeJobs);
       } else {
         setAllJobs([]);
       }

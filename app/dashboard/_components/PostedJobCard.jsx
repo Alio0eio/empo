@@ -4,7 +4,7 @@ import moment from 'moment'
 import Link from 'next/link'
 import React, { useState } from 'react'
 
-function PostedJobCard({ job, viewDetail = false, onDelete }) {
+function PostedJobCard({ job, viewDetail = false, onDelete, isDeleted = false, onRestore }) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const location = [job?.city, job?.country].filter(Boolean).join(', ')
     const salary = job?.minSalary || job?.maxSalary
@@ -105,11 +105,11 @@ function PostedJobCard({ job, viewDetail = false, onDelete }) {
             </div>
 
             {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
+            {showDeleteConfirm && !isDeleted && (
                 <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
                     <div className='bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full'>
                         <h3 className='text-lg font-bold text-gray-900 mb-2'>Delete Job?</h3>
-                        <p className='text-gray-600 mb-6'>Are you sure you want to delete this job posting? This action cannot be undone.</p>
+                        <p className='text-gray-600 mb-6'>Are you sure you want to delete this job posting? You can restore it later from All Jobs.</p>
                         <div className='flex gap-3'>
                             <Button
                                 variant='outline'
@@ -135,16 +135,18 @@ function PostedJobCard({ job, viewDetail = false, onDelete }) {
             {/* Actions */}
             {viewDetail ? (
                 <div className='flex flex-col sm:flex-row gap-2 w-full relative z-10'>
-                    <Link href={`/dashboard/post-job`} className='flex-1'>
-                        <Button
-                            variant='outline'
-                            className='w-full border-[#be3144] text-[#be3144] hover:bg-[#be3144] hover:text-white transition-all duration-200 flex gap-2 text-sm font-medium group-hover:shadow-lg'
-                        >
-                            View Details
-                            <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
-                        </Button>
-                    </Link>
-                    {onDelete && (
+                    {!isDeleted && (
+                        <Link href={`/dashboard/post-job`} className='flex-1'>
+                            <Button
+                                variant='outline'
+                                className='w-full border-[#be3144] text-[#be3144] hover:bg-[#be3144] hover:text-white transition-all duration-200 flex gap-2 text-sm font-medium group-hover:shadow-lg'
+                            >
+                                View Details
+                                <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                            </Button>
+                        </Link>
+                    )}
+                    {!isDeleted && onDelete && (
                         <Button
                             variant='outline'
                             className='border-red-300 text-red-600 hover:bg-red-50 transition-all duration-200 flex gap-2 text-sm font-medium'
@@ -152,6 +154,16 @@ function PostedJobCard({ job, viewDetail = false, onDelete }) {
                         >
                             <Trash2 className='h-4 w-4' />
                             Delete
+                        </Button>
+                    )}
+                    {isDeleted && onRestore && (
+                        <Button
+                            variant='outline'
+                            className='flex-1 border-green-300 text-green-600 hover:bg-green-50 transition-all duration-200 flex gap-2 text-sm font-medium'
+                            onClick={() => onRestore(job.id)}
+                        >
+                            <ArrowRight className='h-4 w-4' />
+                            Restore Job
                         </Button>
                     )}
                 </div>

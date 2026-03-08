@@ -104,10 +104,10 @@ function ScheduledInterview() {
                 const raw = window.localStorage.getItem('devJobs');
                 const jobs = raw ? JSON.parse(raw) : [];
                 
-                // Filter jobs by current recruiter's email
+                // Filter jobs by current recruiter's email and only show active (non-deleted) jobs
                 const recruiterEmail = user?.primaryEmailAddress?.emailAddress || '';
                 const filteredJobs = jobs.filter(job => 
-                    job.recruiterEmail === recruiterEmail || !job.recruiterEmail
+                    (job.recruiterEmail === recruiterEmail || !job.recruiterEmail) && !job.deleted
                 );
                 
                 // Sort newest first
@@ -125,8 +125,10 @@ function ScheduledInterview() {
                 const raw = window.localStorage.getItem('devJobs');
                 const jobs = raw ? JSON.parse(raw) : [];
                 
-                // Filter out the deleted job
-                const updatedJobs = jobs.filter(job => job.id !== jobId);
+                // Mark the job as deleted instead of removing it
+                const updatedJobs = jobs.map(job => 
+                    job.id === jobId ? { ...job, deleted: true, deletedAt: new Date().toISOString() } : job
+                );
                 
                 // Update localStorage
                 window.localStorage.setItem('devJobs', JSON.stringify(updatedJobs));
