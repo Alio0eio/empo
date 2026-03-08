@@ -51,6 +51,15 @@ const interviewTypes = [
   { label: 'Video Interview', value: 'Video Interview' },
 ];
 
+const careerLevels = [
+  { label: 'All Levels', value: 'all' },
+  { label: 'Entry Level', value: 'Entry Level' },
+  { label: 'Experienced', value: 'Experienced' },
+  { label: 'Manager', value: 'Manager' },
+  { label: 'Senior Management', value: 'Senior Management' },
+  { label: 'Student', value: 'Student' },
+];
+
 // User-friendly job card for job seekers
 function JobSeekerJobCard({ job }) {
   const router = useRouter();
@@ -139,6 +148,7 @@ function JobsPageContent() {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedType, setSelectedType] = useState('all');
+  const [selectedCareerLevel, setSelectedCareerLevel] = useState('all');
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -192,7 +202,7 @@ function JobsPageContent() {
 
   // Note: fetchAllJobs is no longer used; jobs come from localStorage only in this dev setup.
 
-  // Filter jobs by selected category, type, and search query
+  // Filter jobs by selected category, type, career level, and search query
   const filteredJobs = allJobs.filter(job => {
     const normalizedSelectedCategory = selectedCategory.toLowerCase();
 
@@ -205,6 +215,9 @@ function JobsPageContent() {
         job.jobCategories.some(cat => cat.toLowerCase() === normalizedSelectedCategory));
 
     const typeMatch = selectedType === 'all' || job.type === selectedType;
+    
+    const careerLevelMatch = selectedCareerLevel === 'all' || job.careerLevel === selectedCareerLevel;
+    
     const query = searchQuery.toLowerCase();
     const searchMatch =
       (job.jobPosition?.toLowerCase().includes(query)) ||
@@ -212,7 +225,7 @@ function JobsPageContent() {
       (job.location?.toLowerCase().includes(query)) ||
       (job.recruiterName?.toLowerCase().includes(query)) ||
       (job.createdBy?.toLowerCase().includes(query));
-    return categoryMatch && typeMatch && searchMatch;
+    return categoryMatch && typeMatch && careerLevelMatch && searchMatch;
   });
 
   // Pagination logic
@@ -236,6 +249,7 @@ function JobsPageContent() {
   const clearFilters = () => {
     setSelectedCategory('All Categories');
     setSelectedType('all');
+    setSelectedCareerLevel('all');
     setSearchQuery("");
     setCurrentPage(1);
   };
@@ -243,9 +257,9 @@ function JobsPageContent() {
   // When filters/search change, reset to first page
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, selectedType, searchQuery]);
+  }, [selectedCategory, selectedType, selectedCareerLevel, searchQuery]);
 
-  // When searchQuery or selectedCategory changes, update the URL
+  // When searchQuery, selectedCategory, or selectedCareerLevel changes, update the URL
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (searchQuery) {
@@ -258,9 +272,14 @@ function JobsPageContent() {
     } else {
       params.delete('category');
     }
+    if (selectedCareerLevel && selectedCareerLevel !== 'all') {
+      params.set('level', selectedCareerLevel);
+    } else {
+      params.delete('level');
+    }
     router.replace(`?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, selectedCareerLevel]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fbf9f9] to-[#f1e9ea]">
@@ -455,6 +474,19 @@ function JobsPageContent() {
                   </select>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-[#8e575f] mb-2">Job Level</label>
+                  <select
+                    className="w-full border border-[#e4d3d5] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4B4B]/50 transition-all bg-white"
+                    value={selectedCareerLevel}
+                    onChange={e => setSelectedCareerLevel(e.target.value)}
+                  >
+                    {careerLevels.map((level, idx) => (
+                      <option key={idx} value={level.value}>{level.label}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     onClick={clearFilters}
@@ -512,6 +544,19 @@ function JobsPageContent() {
                   >
                     {interviewTypes.map((type, idx) => (
                       <option key={idx} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#8e575f] mb-2">Job Level</label>
+                  <select
+                    className="w-full border border-[#e4d3d5] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4B4B]/50 transition-all bg-white"
+                    value={selectedCareerLevel}
+                    onChange={e => setSelectedCareerLevel(e.target.value)}
+                  >
+                    {careerLevels.map((level, idx) => (
+                      <option key={idx} value={level.value}>{level.label}</option>
                     ))}
                   </select>
                 </div>

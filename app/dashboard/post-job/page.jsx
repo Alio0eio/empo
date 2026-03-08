@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { X, ChevronDown, ChevronUp, Save, Eye, EyeOff, AlertCircle, CheckCircle, Clock, MapPin, DollarSign, Users, Briefcase, GraduationCap, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import CreateOptions from '../_components/CreateOptions';
 
 const jobCategories = [
@@ -80,6 +81,7 @@ const periodOptions = [
 ];
 
 export default function PostJobPage() {
+  const { user } = useUser();
   const [step, setStep] = useState('jobDetails');
   const [jobDetails, setJobDetails] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -303,7 +305,8 @@ export default function PostJobPage() {
           gender,
           education,
           academicExcellence,
-          recruiterName: 'Demo Recruiter',
+          recruiterName: user?.fullName || 'Demo Recruiter',
+          recruiterEmail: user?.primaryEmailAddress?.emailAddress || '',
           location: selectedCity && selectedCountry ? `${selectedCity}, ${selectedCountry}` : selectedCountry || '',
           type: 'Video Interview',
           _type: 'mock',
