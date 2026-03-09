@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import TimerComponent from './_components/TimerComponent';
 import axios from 'axios';
+import { saveInterviewFeedback } from '@/utils/localStorageFeedback';
 
 function StartInterview() {
     const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
@@ -201,17 +202,15 @@ Key Guidelines:
             });
             const Content = result.data.content;
             const FINAL_CONTENT = Content.replace('```json', '').replace('```', '');
-            // Using Drizzle syntax for database insertion
+            // Save feedback to localStorage
             const feedbackData = {
                 userName: interviewInfo.userName,
                 userEmail: interviewInfo.userEmail,
-                job_id: job_id,
+                job_id: String(job_id),
                 feedback: JSON.parse(FINAL_CONTENT),
                 recommended: false,
             };
-            const insertedFeedback = await db.insert(callInterviewFeedback)
-                .values(feedbackData)
-                .returning();
+            saveInterviewFeedback(feedbackData);
             router.replace('/job-seeker/interview-thankyou');
         } catch (error) {
             console.error('Error saving feedback:', error);

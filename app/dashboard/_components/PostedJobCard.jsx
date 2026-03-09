@@ -3,9 +3,12 @@ import { ArrowRight, Briefcase, MapPin, Calendar, Users, GraduationCap, DollarSi
 import moment from 'moment'
 import Link from 'next/link'
 import React, { useState } from 'react'
+import { ViewCandidatesModal } from './ViewCandidatesModal'
 
 function PostedJobCard({ job, viewDetail = false, onDelete, isDeleted = false, onRestore }) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showCandidatesModal, setShowCandidatesModal] = useState(false);
+    
     const location = [job?.city, job?.country].filter(Boolean).join(', ')
     const salary = job?.minSalary || job?.maxSalary
         ? `${job.minSalary || '?'} - ${job.maxSalary || '?'} ${job.currency || 'EGP'}/${job.period || 'Per Month'}`
@@ -134,39 +137,59 @@ function PostedJobCard({ job, viewDetail = false, onDelete, isDeleted = false, o
 
             {/* Actions */}
             {viewDetail ? (
-                <div className='flex flex-col sm:flex-row gap-2 w-full relative z-10'>
-                    {!isDeleted && (
-                        <Link href={`/dashboard/post-job`} className='flex-1'>
+                <>
+                    <div className='flex flex-col sm:flex-row gap-2 w-full relative z-10'>
+                        {!isDeleted && (
+                            <>
+                                <Link href={`/dashboard/post-job`} className='flex-1'>
+                                    <Button
+                                        variant='outline'
+                                        className='w-full border-[#be3144] text-[#be3144] hover:bg-[#be3144] hover:text-white transition-all duration-200 flex gap-2 text-sm font-medium group-hover:shadow-lg'
+                                    >
+                                        View Details
+                                        <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant='outline'
+                                    className='flex-1 border-blue-300 text-blue-600 hover:bg-blue-50 transition-all duration-200 flex gap-2 text-sm font-medium'
+                                    onClick={() => setShowCandidatesModal(true)}
+                                >
+                                    <Users className='h-4 w-4' />
+                                    View Candidates
+                                </Button>
+                            </>
+                        )}
+                        {!isDeleted && onDelete && (
                             <Button
                                 variant='outline'
-                                className='w-full border-[#be3144] text-[#be3144] hover:bg-[#be3144] hover:text-white transition-all duration-200 flex gap-2 text-sm font-medium group-hover:shadow-lg'
+                                className='border-red-300 text-red-600 hover:bg-red-50 transition-all duration-200 flex gap-2 text-sm font-medium'
+                                onClick={() => setShowDeleteConfirm(true)}
                             >
-                                View Details
-                                <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+                                <Trash2 className='h-4 w-4' />
+                                Delete
                             </Button>
-                        </Link>
-                    )}
-                    {!isDeleted && onDelete && (
-                        <Button
-                            variant='outline'
-                            className='border-red-300 text-red-600 hover:bg-red-50 transition-all duration-200 flex gap-2 text-sm font-medium'
-                            onClick={() => setShowDeleteConfirm(true)}
-                        >
-                            <Trash2 className='h-4 w-4' />
-                            Delete
-                        </Button>
-                    )}
-                    {isDeleted && onRestore && (
-                        <Button
-                            variant='outline'
-                            className='flex-1 border-green-300 text-green-600 hover:bg-green-50 transition-all duration-200 flex gap-2 text-sm font-medium'
-                            onClick={() => onRestore(job.id)}
-                        >
-                            <ArrowRight className='h-4 w-4' />
-                            Restore Job
-                        </Button>
-                    )}
-                </div>
+                        )}
+                        {isDeleted && onRestore && (
+                            <Button
+                                variant='outline'
+                                className='flex-1 border-green-300 text-green-600 hover:bg-green-50 transition-all duration-200 flex gap-2 text-sm font-medium'
+                                onClick={() => onRestore(job.id)}
+                            >
+                                <ArrowRight className='h-4 w-4' />
+                                Restore Job
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Candidates Modal */}
+                    <ViewCandidatesModal 
+                        jobId={job.id}
+                        jobPosition={job.jobPosition || job.jobTitle}
+                        isOpen={showCandidatesModal}
+                        onOpenChange={setShowCandidatesModal}
+                    />
+                </>
             ) : (
                 <div className='flex flex-col sm:flex-row gap-3 w-full relative z-10'>
                     <Link href={`/dashboard/post-job`} className='flex-1'>
