@@ -654,7 +654,7 @@ function StartInterview({ params }) {
                       <Button
                         onClick={async () => {
                           await endSession();
-                          window.location.href = `/interview/${interviewData.mockId}/feedback?sessionId=${sessionId}`;
+                          window.location.href = `/job-seeker/interview-thankyou`;
                         }}
                         className="px-6 py-3 rounded-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold shadow-lg hover:scale-105 transition-all duration-300"
                       >

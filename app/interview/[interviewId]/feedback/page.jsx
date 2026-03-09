@@ -287,7 +287,7 @@ function FeedbackContent({ params }) {
           <div className="mt-10 flex justify-between border-t pt-6">
             <Button
               variant="outline"
-              onClick={() => router.replace('/')}
+              onClick={() => router.replace('/job-seeker/interview-thankyou')}
             >
               Save and Exit
             </Button>

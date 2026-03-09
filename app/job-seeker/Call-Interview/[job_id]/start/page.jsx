@@ -212,7 +212,7 @@ Key Guidelines:
             const insertedFeedback = await db.insert(callInterviewFeedback)
                 .values(feedbackData)
                 .returning();
-            router.replace('/job-seeker/Call-Interview/' + job_id + "/completed");
+            router.replace('/job-seeker/interview-thankyou');
         } catch (error) {
             console.error('Error saving feedback:', error);
             toast.error('Failed to save feedback: ' + (error?.message || 'Unknown error'));
